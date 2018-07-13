@@ -12,7 +12,7 @@ function Sidebar() {
               <span className="icon-bar"></span>
           </button>
         <NavLink to="/">
-            <a className="navbar-brand">Assets Management API</a>
+            <a className="navbar-brand">Assets Management</a>
         </NavLink>
       </div>
 

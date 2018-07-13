@@ -1,0 +1,220 @@
+https://www.youtube.com/watch?v=9b8erWuBA44&index=27&list=RD4Rg3sAb8Id8
+
+https://www.youtube.com/watch?v=rp4UwPZfRis&list=RD4Rg3sAb8Id8&index=27
+
+
+
+
+https://reactjs.org/docs/introducing-jsx.html
+https://www.robinwieruch.de/react-fetching-data/
+
+App.js
+// https://www.andreasreiterer.at/web-development/connect-react-app-rest-api/
+// https://www.robinwieruch.de/react-fetching-data/
+// https://github.com/danilowoz/react-content-loader
+// https://reactjs.org/docs/introducing-jsx.html
+
+import React, { Component } from "react";
+import axios from "axios";
+import ContactList from "./components/ContactList";
+import logo from "./logo.svg";
+import "./App.css";
+import "./css/bootstrap.min.css";
+import "./css/fontawesome-all.min.css";
+import "./css/tooplate-style.css";
+import { Code } from 'react-content-loader'
+
+const API = 'https://jsonplaceholder.typicode.com/users';
+
+class App extends Component {
+  // default state object
+  state = {
+    contacts: [],
+    isLoading: false,
+    error: null
+  };
+
+  componentDidMount() {
+    this.setState({ isLoading: true });
+    axios
+      .get(API)
+      .then(response => {
+        // create an array of contacts only with relevant data
+        const newContacts = response.data.map(c => {
+          return {
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            address: c.address
+          };
+        });
+
+        // create a new "state" object without mutating
+        // the original state object.
+        const newState = Object.assign({}, this.state, {
+          contacts: newContacts,
+          isLoading: false,
+        });
+
+        // store the new state object in the component's state
+        this.setState(newState);
+      })
+      .catch(error => console.log(error));
+  }
+
+  render() {
+    const { newState, isLoading, error } = this.state;
+
+    if (isLoading) {
+      return <Code />;
+    }
+
+    if (error) {
+      return <p>{error.message}</p>;
+    }
+
+    return (
+      <div className="App">
+        <ContactList contacts={this.state.contacts} />
+      </div>
+    );
+  }
+}
+
+export default App;
+
+
+
+
+-------------------------------- without axios
+// https://www.andreasreiterer.at/web-development/connect-react-app-rest-api/
+// https://www.robinwieruch.de/react-fetching-data/
+// https://github.com/danilowoz/react-content-loader
+// https://reactjs.org/docs/introducing-jsx.html
+
+import React, { Component } from "react";
+import axios from "axios";
+import ContactList from "./components/ContactList";
+import logo from "./logo.svg";
+import "./App.css";
+import "./css/bootstrap.min.css";
+import "./css/fontawesome-all.min.css";
+import "./css/tooplate-style.css";
+import { Code } from 'react-content-loader'
+
+const API = 'https://jsonplaceholder.typicode.com/users';
+
+class App extends Component {
+
+  constructor(){
+    super();
+    this.state = {
+      data: [],
+      isLoading: false,
+      error: null
+    }
+  }
+
+  componentDidMount() {
+    fetch(API)
+    .then((Response) => Response.json())
+    .then((findresponse) => {
+      console.log(findresponse)
+      this.setState({
+        data: findresponse
+      })
+      console.log(findresponse);
+    })
+    .catch(error => console.log(error));
+  }
+
+  render() {
+    const { isLoading, error } = this.state;
+
+    if (isLoading) {
+      return <Code />;
+    }
+
+    if (error) {
+      return <p>{error.message}</p>;
+    }
+
+    return (
+      <div className="App">
+      {
+        this.state.data.map((props, key) =>
+        <div className="contact">
+          <div>
+            <h5 className="tm-text-pink"><b>{props.name}</b></h5>
+            <p className="mb-0"><b>Email: </b>{props.email}</p>
+            <p className="mb-0"><b>Street Address: </b>{props.address.street}</p>
+
+            <br/>
+            <p>
+              <a href="#" class="tm-bg-pink tm-text-white tm-buy">EDIT</a> 
+              <a href="#" class="tm-bg-blue tm-text-white tm-buy">DELETE</a>
+            </p>
+          </div>
+        </div>)
+      }
+      </div>
+    );
+  }
+}
+
+
+  
+<script src="../src/vendor/jquery/jquery.min.js"></script>
+<script src="../src/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="../src/vendor/metisMenu/metisMenu.min.js"></script>
+<script src="../src/vendor/datatables/js/jquery.dataTables.min.js"></script>
+<script src="../src/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+<script src="../src/vendor/datatables-responsive/dataTables.responsive.js"></script>
+<script src="../src/dist/js/sb-admin-2.js"></script>
+
+
+
+
+https://reactjs.org/tutorial/tutorial.html
+https://medium.freecodecamp.org/learn-react-js-in-5-minutes-526472d292f4
+https://appdividend.com/2018/05/04/react-bootstrap-table2-example/
+https://kapeli.com/cheat_sheets/Axios.docset/Contents/Resources/Documents/index
+https://www.thenetninja.co.uk/courses/react-tutorials
+https://scotch.io/tutorials/routing-react-apps-the-complete-guide#links
+
+
+http://www.tech-dojo.org/#!/articles/5703b2e98ff769fc29f96aec
+https://medium.freecodecamp.org/how-to-build-a-real-time-editable-datagrid-in-react-c13a37b646ec
+
+
+add buttons
+https://datatables.net/examples/ajax/null_data_source.html
+https://stackoverflow.com/questions/22471862/how-do-i-add-button-on-each-row-in-datatable
+https://codepen.io/RedJokingInn/pen/zZyRmR
+https://editor.datatables.net/examples/api/triggerButton.html
+
+
+
+http://allenfang.github.io/react-bootstrap-table/custom.html#insertBtn
+https://code.tutsplus.com/tutorials/working-with-tables-in-react-part-one--cms-29682
+https://stackoverflow.com/questions/37657482/add-button-in-a-react-bootstrap-table
+http://www.code4fusion.com/2016/09/crud-operation-example-in-reactjs-or.html
+
+
+
+https://www.codeofaninja.com/2016/07/react-crud-tutorial.html
+https://codeburst.io/redux-a-crud-example-abb834d763c9
+https://www.thegreatcodeadventure.com/building-a-simple-crud-app-with-react-redux-part-1/
+https://medium.com/@rajaraodv/a-guide-for-building-a-react-redux-crud-app-7fe0b8943d0f
+https://www.valentinog.com/blog/react-redux-tutorial-beginners/#React_Redux_tutorial_a_minimal_React_development_environment
+
+
+https://www.roytuts.com/react-rest-api-get-example/
+https://www.youtube.com/watch?v=93p3LxR9xfM
+https://www.youtube.com/watch?v=DiLVAXlVYR0
+
+https://lorenstewart.me/2016/10/31/react-js-forms-controlled-components/
+https://v4-alpha.getbootstrap.com/components/forms/
+
+https://appdividend.com/2017/08/23/redux-tutorial-example-scratch/
+https://medium.com/@firasd/quick-start-tutorial-using-redux-in-react-apps-89b142d6c5c1
