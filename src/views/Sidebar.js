@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 
 function Sidebar() {
   return <div>
-    <nav className="navbar navbar-default navbar-static-top" role="navigation">
+    <nav className="navbar navbar-default navbar-static-top">
       <div className="navbar-header">
           <button type="button" className="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
               <span className="sr-only">Toggle navigation</span>
@@ -12,7 +12,7 @@ function Sidebar() {
               <span className="icon-bar"></span>
           </button>
         <NavLink to="/">
-            <a className="navbar-brand">Assets Management</a>
+            <p className="navbar-brand">Assets Management</p>
         </NavLink>
       </div>
 
@@ -35,48 +35,43 @@ function Sidebar() {
                       </NavLink>
                   </li>
                   <li>
-                        <NavLink to="/create_asset">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> CREATE ASSET
+                        <NavLink to="/asset">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> ASSETS
+                        </NavLink>
+                  </li>
+                  <li>
+                        <NavLink to="/category">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> CATEGORIES
+                        </NavLink>
+                  </li>
+                  <li>
+                        <NavLink to="/manufacturer">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> MANUFACTURERS
+                        </NavLink>
+                  </li>
+                  <li>
+                        <NavLink to="/model">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> MODELS
+                        </NavLink>
+                  </li>
+                  <li>
+                        <NavLink to="/processor">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> PROCESSORS
                         </NavLink>
                   </li>
                   <li>
                         <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> CATEGORY
+                            <i className="fa fa-plus fa-fw"></i> SIZES
+                        </NavLink>
+                  </li>
+                  <li>
+                        <NavLink to="/supplier">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> SUPPLIERS
                         </NavLink>
                   </li>
                   <li>
                         <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> MODEL
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="fa fa-plus fa-fw"></i> SUPPLIER
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> MANUFACTURER
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> MEMORY
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> PROCESSOR
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> VIDEO CARD
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> HARD DISK
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> TYPES
                         </NavLink>
                   </li>
               </ul>

@@ -1,12 +1,10 @@
-// default page
 import React, { Component } from "react";
 import axios from "axios";
-import { Route, NavLink } from "react-router-dom";
 import { Code } from 'react-content-loader';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import '../../node_modules/react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
 
-const API = 'https://jsonplaceholder.typicode.com/posts';
+const getAssetAPI = 'http://localhost:57732/api/Assets';
 
 class Index extends Component {
   state = {
@@ -18,7 +16,7 @@ class Index extends Component {
   componentDidMount() {
     this.setState({isLoading: true});
     axios
-      .get(API)
+      .get(getAssetAPI)
       .then(response => {
         const newData = response.data;
 
@@ -44,52 +42,52 @@ class Index extends Component {
 
     return (
       <div id="page-wrapper">
-        <div className="row">
-          <div className="col-lg-12">
-              <h1 className="page-header">Assets</h1>
-          </div>
-        </div>
-        <div className="row">
-            <div className="col-lg-12">
-                <div className="panel panel-default">
-                    <div className="panel-heading">
-                    </div>
-                    <div className="panel-body">
-                        <div className="table-responsive">
-                            <BootstrapTable
-                                // https://appdividend.com/2018/05/04/react-bootstrap-table2-example/
-                                data={this.state.data}
-                                striped
-                                hover
-                                pagination>
-                            <TableHeaderColumn dataField='id' isKey={true} width="50">S/N</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">IT Asset Tag</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Battery UnLT</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Adapter UnLT</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130" thStyle={ { whiteSpace: 'normal' } }>Hostname / Asset Name</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Assigned to</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Delivery Date</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Model</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">CPU</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Model</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">RAM</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Video Card</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">HDD / SSD</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">PO #</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">DR #</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">SI #</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">MAC Address</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">IP Address</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Status</TableHeaderColumn>
-                            <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Manufacturer</TableHeaderColumn>
-                            <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Category</TableHeaderColumn>
-                            </BootstrapTable>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div className="row">
+        <div className="col-lg-12">
+            <h1 className="page-header">Asset</h1>
         </div>
       </div>
+      <div className="row">
+          <div className="col-lg-12">
+              <div className="panel panel-info">
+                  <div className="panel-heading">
+                    <p> List of Asset </p>
+                  </div>
+                  <div className="panel-body">
+                      <div>
+                          <BootstrapTable
+                              data={this.state.data.list}
+                              striped
+                              hover
+                              pagination>
+                          <TableHeaderColumn dataField='id' isKey={true} width="50">S/N</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">IT Asset Tag</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Battery UnLT</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Adapter UnLT</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130" thStyle={ { whiteSpace: 'normal' } }>Hostname / Asset Name</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Assigned to</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Delivery Date</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Model</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">CPU</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Model</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">RAM</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Video Card</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">HDD / SSD</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">PO #</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">DR #</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">SI #</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">MAC Address</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">IP Address</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Status</TableHeaderColumn>
+                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Manufacturer</TableHeaderColumn>
+                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Category</TableHeaderColumn>
+                          </BootstrapTable>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
     );
   }
 }
