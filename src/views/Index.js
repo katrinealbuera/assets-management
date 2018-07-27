@@ -1,44 +1,43 @@
 import React, { Component } from "react";
-import axios from "axios";
 import { Code } from 'react-content-loader';
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import '../../node_modules/react-bootstrap-table/dist/react-bootstrap-table-all.min.css';
-
-const getAssetAPI = 'http://localhost:57732/api/Assets';
+import { connect } from 'react-redux';
+import { getAssets } from '../actions/assetAction';
 
 class Index extends Component {
-  state = {
-    data: [],
-    isLoading: false,
-    error: null
-  };
 
-  componentDidMount() {
-    this.setState({isLoading: true});
-    axios
-      .get(getAssetAPI)
-      .then(response => {
-        const newData = response.data;
-
-        const newState = Object.assign({}, this.state, {
-          data: newData,
-          isLoading: false
-        });
-        this.setState(newState);
-        })
-      .catch(error => console.log(error));
+  componentWillMount() {
+    this.props.getAssets();
   }
 
   render() {
-    const { isLoading, error } = this.state;
 
-    if (isLoading) {
-      return <Code />;
-    }
-
-    if (error) {
-      return <p>{error.message}</p>;
-    }
+    var assetList = this.props.assets.map(function(props, index) {
+      return(
+        <tr key={'asset_'+index}>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.id}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.serialNo}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.assetTag}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.battery}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.assignedTo}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.deliveryDate}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.modelId}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.processorId}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.memoryId}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.videoCardId}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.hardDiskId}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.poNo}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.drNo}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.siNo}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.macAddress}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.ipAddress}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.status}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.manufacturerId}</p></td>
+          <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.categoryId}</p></td>
+        </tr>
+      );}, this); 
 
     return (
       <div id="page-wrapper">
@@ -49,39 +48,41 @@ class Index extends Component {
       </div>
       <div className="row">
           <div className="col-lg-12">
-              <div className="panel panel-info">
+              <div className="panel panel-primary">
                   <div className="panel-heading">
                     <p> List of Asset </p>
                   </div>
                   <div className="panel-body">
-                      <div>
-                          <BootstrapTable
-                              data={this.state.data.list}
-                              striped
-                              hover
-                              pagination>
-                          <TableHeaderColumn dataField='id' isKey={true} width="50">S/N</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">IT Asset Tag</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Battery UnLT</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Adapter UnLT</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130" thStyle={ { whiteSpace: 'normal' } }>Hostname / Asset Name</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Assigned to</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Delivery Date</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Model</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">CPU</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Model</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">RAM</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Video Card</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">HDD / SSD</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">PO #</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">DR #</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">SI #</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">MAC Address</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">IP Address</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Status</TableHeaderColumn>
-                          <TableHeaderColumn dataField='title' editable={{type:'textarea'}} width="130">Manufacturer</TableHeaderColumn>
-                          <TableHeaderColumn dataField='body' editable={{type:'textarea'}} width="130">Category</TableHeaderColumn>
-                          </BootstrapTable>
+                      <div className="table-responsive">
+                        <table className="table table-bordered table-hover">
+                            <thead>
+                                <tr className="info">
+                                    <th>ID</th>
+                                    <th>S/N</th>
+                                    <th>IT Asset Tag</th>
+                                    <th>Battery UnLT</th>
+                                    <th>Hostname / Asset Name</th>
+                                    <th>Assigned to</th>
+                                    <th>Delivery Date</th>
+                                    <th>Model</th>
+                                    <th>CPU</th>
+                                    <th>RAM</th>
+                                    <th>Video Card</th>
+                                    <th>HDD / SSD</th>
+                                    <th>PO #</th>
+                                    <th>DR #</th>
+                                    <th>SI #</th>
+                                    <th>MAC Address</th>
+                                    <th>IP Address</th>
+                                    <th>Status</th>
+                                    <th>Manufacturer</th>
+                                    <th>Category</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              { assetList }
+                            </tbody>
+                        </table>
                       </div>
                   </div>
               </div>
@@ -92,4 +93,8 @@ class Index extends Component {
   }
 }
 
-export default Index;
+const mapStateToProps = state => ({
+  assets: state.assets.assetList
+})
+
+export default connect(mapStateToProps, { getAssets })(Index);

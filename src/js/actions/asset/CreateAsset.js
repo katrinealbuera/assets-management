@@ -1,30 +1,31 @@
 import React, { Component } from "react";
-import setup from '../../setup/api';
 import CreateLaptop from '../../actions/asset/CreateLaptop';
+import { connect } from 'react-redux';
+import { getCategories } from '../../../actions/assetAction';
 
 class CreateAsset extends Component {
 
-    state = {
-        name: ''
+    constructor(){
+        super();
+
+        this.state = {
+            selectOpt: ''
+        };
+
+        this.getSelectOpt = this.getSelectOpt.bind(this);
     }
 
-    handleChange = event => {
+    getSelectOpt = event => {
         this.setState({
-            name: event.target.value
+            selectOpt: event.target.value
         });
+
+         console.log(this.state.selectOpt);
     }
 
-    handleSubmit = event => {
-        event.preventDefault();
-
-
-    setup.PostFunction(setup.BASE_URL + setup.Assets, this.state)
-    .then(response => {
-        console.log(response);
-        console.log(response.data);
-        this.props.getAssets();
-    })
-}
+    componentWillMount() {
+        this.props.getCategories();
+        }
 
   render() {
     return (
@@ -41,16 +42,18 @@ class CreateAsset extends Component {
                             <div className="panel-heading">
                                 <div className="form-group">
                                     <label>Category</label>
-                                    <select className="form-control">
-                                        <option></option>
-                                        <option>LAPTOP</option>
-                                        <option>MONITOR</option>
+                                    <select className="form-control" onChange={this.getSelectOpt}>
+                                    <option></option>
+                                        {
+                                            this.props.categories.map((props,index) =>
+                                            <option key={'cate_'+index}>{props.name}</option>)
+                                        }
                                     </select>
                                 </div>
                             </div>
                             <div className="panel-body">
                                 <div className="row">
-                                    <CreateLaptop />
+                                <CreateLaptop/>
                                 </div>
                             </div>
                         </div>
@@ -62,4 +65,8 @@ class CreateAsset extends Component {
   }
 }
 
-export default CreateAsset;
+const mapStateToProps = state => ({
+    categories: state.categories.categoryList
+  })
+  
+  export default connect(mapStateToProps, { getCategories })(CreateAsset);

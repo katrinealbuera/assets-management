@@ -1,38 +1,55 @@
 import React, { Component } from "react";
-import { Code } from 'react-content-loader';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
-import CreateManufacturer from '../../js/actions/manufacturer/CreateManufacturer';
 import setup from '../../js/setup/api';
+import { Code } from 'react-content-loader';
+import CreateManufacturer from '../../js/actions/manufacturer/CreateManufacturer';
+import { connect } from 'react-redux';
+import { getManufacturers, putAPI } from '../../actions/assetAction';
 
 class Manufacturer extends Component {
-  state = {
-    data: [],
-    isLoading: false,
-    error: null
-  };
 
   constructor(){
     super();
-    this.getManufacturer = this.getManufacturer.bind(this);
+
+    this.state = {
+      isEditing: false,
+      nameId: null,
+    }
   }
-  componentDidMount() {
-    this.getManufacturer();
+
+  componentWillMount() {
+    this.props.getManufacturers();
   }
 
-  getManufacturer(){
-    this.setState({isLoading: true});
+  handleInputChange = (event) => {
+    this.setState({[event.target.name] : event.target.value})
+  }
 
-    setup.GetWithParameter(setup.BASE_URL + setup.Manufacturers, '?ShowAll=true')
-      .then(response => {
-        const newData = response.data.list;
+  handleEditBtnClick = function(index, name, event) {
+    event.preventDefault();
 
-        const newState = Object.assign({}, this.state, {
-          data: newData,
-          isLoading: false
-        });
-        this.setState(newState);
+    this.setState({
+      nameId: index,
+      name: name
+    });
+
+    let newName = {
+      id: index,
+      name: this.state.name
+  }
+
+    if (this.state.isEditing) {
+      this.props.putAPI(setup.BASE_URL + setup.Manufacturers + setup.Id, index, newName)
+        .then(response => {
+          this.setState({nameId: null, isEditing: false})
         })
-      .catch(error => console.log(error));
+        .then(() => {
+          this.props.getManufacturers();
+        })
+        .catch(error => console.log(error));
+    }
+
+    this.setState({isEditing: true})
+
   }
 
   render() {
@@ -45,6 +62,31 @@ class Manufacturer extends Component {
     if (error) {
       return <p>{error.message}</p>;
     }
+
+    var manufacturerItem = this.props.manufacturers.map(function(props, index) {
+      return(
+        <tr key={'manufacturer_'+index}>
+          <td>{props.id}</td>
+          { 
+            (props.id === this.state.nameId) ? 
+            <td className="col-lg-6">
+              <input type="text" 
+                    name="name" 
+                    className="form-control"
+                    defaultValue={props.name} 
+                    onChange={this.handleInputChange}/>
+            </td>
+          :
+            <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>       
+          }
+          <td>
+            <input type="submit" 
+                  value={this.state.nameId !== props.id   ? 'Edit' : 'Save'} 
+                  className="btn btn-success"
+                  onClick={this.handleEditBtnClick.bind(this, props.id, props.name)}/>
+          </td>
+        </tr>
+      );}, this); 
     
     return (
       <div id="page-wrapper">
@@ -54,21 +96,29 @@ class Manufacturer extends Component {
           </div>
         </div>
         <div className="row">
-            <div className="col-lg-5">
+            <div className="col-lg-6">
                 <div className="panel panel-info">
                     <div className="panel-heading">
                         <p> List of Manufacturer </p>
                     </div>
                     <div className="panel-body">
-                        <div>
-                            <BootstrapTable
-                                data={this.state.data}
-                                hover
-                                pagination>
-                            <TableHeaderColumn isKey={true} dataField='name' editable={{type:'textarea'}} width="130">Manufacturer Name</TableHeaderColumn>
-                            </BootstrapTable>
-                        </div>
+                    <div className="table-responsive table-bordered">
+                      <form>
+                      <table className="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Category</th>
+                                    <th>Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              { manufacturerItem }
+                            </tbody>
+                        </table>
+                      </form>
                     </div>
+                </div>
                 </div>
             </div>
           <CreateManufacturer getManufacturer={this.getManufacturer}/>
@@ -78,4 +128,8 @@ class Manufacturer extends Component {
   }
 }
 
-export default Manufacturer;
+const mapStateToProps = state => ({
+  manufacturers: state.manufacturers.manufacturerList
+})
+
+export default connect(mapStateToProps, { getManufacturers, putAPI })(Manufacturer);

@@ -1,114 +1,75 @@
-import { Code } from 'react-content-loader';
 import React, { Component } from "react";
-import CreateModel from '../../js/actions/model/CreateModel';
 import setup from '../../js/setup/api';
+import CreateModel from '../../js/actions/model/CreateModel';
+import { connect } from 'react-redux';
+import { getModels, putAPI } from '../../actions/assetAction';
 
-export default class Model extends Component {
+class Model extends Component {
 
-  constructor()
-  {
+  constructor(){
     super();
 
     this.state = {
-      data: [],
       isEditing: false,
-      isEditingId: null,
-      isLoading: true,
-      error: null
-    };
-
-    this.getModels = this.getModels.bind(this);
-  }
-  
-  handleSubmit = event => {
-    event.preventDefault();
-
-    setup.PostFunction(setup.BASE_URL + setup.Models, this.state.name)
-    .then(response => {
-        console.log(response);
-        console.log(response.data);
-        this.props.getModels();
-      })
+      nameId: null,
+      activePage: 10
     }
+  }
 
-  handleInputChange = event => {
+  handlePageChange(pageNumber){
     this.setState({
-      name: event.target.value
-    })
+      activePage: pageNumber
+    });
+  }
+
+  componentWillMount() {
+    this.props.getModels();
+  }
+
+  handleInputChange = (event) => {
+    this.setState({[event.target.name] : event.target.value})
   }
 
   handleEditBtnClick = function(index, name, event) {
-
     event.preventDefault();
 
-    this.setState({isEditingId: index, name: name})
+    this.setState({
+      nameId: index,
+      name: name
+    });
 
     let newName = {
       id: index,
       name: this.state.name
-    }
-
-    if (this.state.isEditing){
-      setup.PutFunction(setup.BASE_URL + setup.Models, setup.Id + index, newName)
-      .then(response => {
-        const updatedModel = newName.name;
-
-        const newState = Object.assign({}, this.state, {
-          name: updatedModel,
-          isEditingId: null,
-          isEditing:false
-        });
-        this.setState(newState);
-
-        console.log(newState);
-        this.getModels();
-      })
-      .catch(error => console.log(error));
-    }
-      this.setState({isEditing: true})
   }
 
-  componentDidMount() 
-  {
-    this.getModels();
-  }
+    if (this.state.isEditing) {
+      this.props.putAPI(setup.BASE_URL + setup.Models + setup.Id, index, newName)
+        .then(response => {
+          this.setState({nameId: null, isEditing: false})
+        })
+        .then(() => {
+          this.props.getModels();
+        })
+        .catch(error => console.log(error));
+    }
 
-  getModels()
-  {
-    setup.GetWithParameter(setup.BASE_URL + setup.Models, setup.ShowAll + 'true')
-      .then(response => {
-        const newData = response.data.list;
+    this.setState({isEditing: true})
 
-        const newState = Object.assign({}, this.state, {
-          data: newData,
-          isLoading: false,
-          isEditingId: null
-      });
-        this.setState(newState);
-        console.log(newState);
-      })
-      .catch(error => console.log(error));
   }
 
   render() 
   {
-    const {isLoading} = this.state;
-
-    if (isLoading) 
-    {
-      return <Code />;
-    }
-
-    var modelItem = this.state.data.map(function(props, index) {
+    var modelItem = this.props.models.map(function(props, index) {
       return(
-        <tr key={index}>
+        <tr key={'model_'+index}>
           <td>{props.id}</td>
           { 
-            (props.id === this.state.isEditingId) ? 
+            (props.id === this.state.nameId) ? 
             <td className="col-lg-6">
               <input type="text" 
                     name="name" 
-                    className="form-control .col-md-4"
+                    className="form-control"
                     defaultValue={props.name} 
                     onChange={this.handleInputChange}/>
             </td>
@@ -117,7 +78,7 @@ export default class Model extends Component {
           }
           <td>
             <input type="submit" 
-                  value={this.state.isEditingId !== props.id   ? 'Edit' : 'Save'} 
+                  value={this.state.nameId !== props.id   ? 'Edit' : 'Save'} 
                   className="btn btn-success"
                   onClick={this.handleEditBtnClick.bind(this, props.id, props.name)}/>
           </td>
@@ -163,3 +124,9 @@ export default class Model extends Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  models: state.models.modelList
+})
+
+export default connect(mapStateToProps, { getModels, putAPI })(Model);

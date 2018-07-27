@@ -1,40 +1,57 @@
 import React, { Component } from "react";
 import { Code } from 'react-content-loader';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
 import CreateProcessor from '../../js/actions/processor/CreateProcessor';
 import setup from '../../js/setup/api';
+import { connect } from 'react-redux';
+import { getProcessors, putAPI } from '../../actions/assetAction';
 
 class Processor extends Component {
-  state = {
-    data: [],
-    isLoading: false,
-    error: null
-  };
 
   constructor(){
     super();
-    this.getProcessor = this.getProcessor.bind(this);
+
+    this.state = {
+      isEditing: false,
+      nameId: null,
+    }
   }
-  componentDidMount() {
-    this.getProcessor();
+
+  componentWillMount() {
+    this.props.getProcessors();
   }
 
+  handleInputChange = (event) => {
+    this.setState({[event.target.name] : event.target.value})
+  }
 
-  getProcessor(){
-    this.setState({isLoading: true});
+  handleEditBtnClick = function(index, name, event) {
+    event.preventDefault();
 
-    setup.GetWithParameter(setup.BASE_URL + setup.Processors, '?ShowAll=true')
-      .then(response => {
-        const newData = response.data.list;
+    this.setState({
+      nameId: index,
+      name: name
+    });
 
-        const newState = Object.assign({}, this.state, {
-          data: newData,
-          isLoading: false
-        });
-        this.setState(newState);
+    let newName = {
+      id: index,
+      name: this.state.name
+  }
+
+    if (this.state.isEditing) {
+      this.props.putAPI(setup.BASE_URL + setup.Processors + setup.Id, index, newName)
+        .then(response => {
+          this.setState({nameId: null, isEditing: false})
         })
-      .catch(error => console.log(error));
+        .then(() => {
+          this.props.getProcessors();
+        })
+        .catch(error => console.log(error));
+    }
+
+    this.setState({isEditing: true})
+
   }
+
 
   render() {
     const { isLoading, error } = this.state;
@@ -46,6 +63,31 @@ class Processor extends Component {
     if (error) {
       return <p>{error.message}</p>;
     }
+
+    var processorItem = this.props.processors.map(function(props, index) {
+      return(
+        <tr key={index}>
+          <td>{props.id}</td>
+          { 
+            (props.id === this.state.nameId) ? 
+            <td className="col-lg-6">
+              <input type="text" 
+                    name="name" 
+                    className="form-control"
+                    defaultValue={props.name} 
+                    onChange={this.handleInputChange}/>
+            </td>
+          :
+            <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>       
+          }
+          <td>
+            <input type="submit" 
+                  value={this.state.nameId !== props.id   ? 'Edit' : 'Save'} 
+                  className="btn btn-success"
+                  onClick={this.handleEditBtnClick.bind(this, props.id, props.name)}/>
+          </td>
+        </tr>
+      );}, this); 
     
     return (
       <div id="page-wrapper">
@@ -61,21 +103,34 @@ class Processor extends Component {
                         <p> List of Processor </p>
                     </div>
                     <div className="panel-body">
-                        <div className="table-responsive">
-                            <BootstrapTable
-                                data={this.state.data}
-                                hover>
-                            <TableHeaderColumn isKey={true} dataField='name' editable={{type:'textarea'}} width="130">Processor Name</TableHeaderColumn>
-                            </BootstrapTable>
-                        </div>
+                    <div className="table-responsive table-bordered">
+                      <form>
+                      <table className="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Processor</th>
+                                    <th>Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              { processorItem }
+                            </tbody>
+                        </table>
+                      </form>
                     </div>
                 </div>
+                </div>
             </div>
-          <CreateProcessor getModels={this.getProcessor}/>
+          <CreateProcessor getProcessor={this.getProcessor}/>
         </div>
       </div>
     );
   }
 }
 
-export default Processor;
+const mapStateToProps = state => ({
+  processors: state.processors.processorList
+})
+
+export default connect(mapStateToProps, { getProcessors, putAPI })(Processor);

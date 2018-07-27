@@ -1,29 +1,38 @@
 import React, { Component } from "react";
 import setup from '../../setup/api';
+import { connect } from 'react-redux';
+import { postAPI, getManufacturers } from '../../../actions/assetAction';
 
 class CreateManufacturer extends Component {
 
-    state = {
-        name: ''
+    constructor(props){
+        super(props);
+
+        this.state = {
+            name: ''
+        }
+
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange = event => {
-        this.setState({
-            name: event.target.value
-        });
+        this.setState({[event.target.name] : event.target.value})
     }
 
-    handleSubmit = event => {
+    handleSubmit(event){
         event.preventDefault();
+        
+        const newName = {
+            name: this.state.name
+        }
 
+        this.props.postAPI(setup.BASE_URL + setup.Manufacturers, newName)
+            .then(() => {
+                this.props.getManufacturers();
+            });
+        this.setState({name: ''});
+    }
 
-    setup.PostFunction(setup.BASE_URL + setup.Manufacturers, this.state)
-    .then(response => {
-        console.log(response);
-        console.log(response.data);
-        this.props.getManufacturer();
-    })
-}
 
   render() {
     return (
@@ -34,13 +43,19 @@ class CreateManufacturer extends Component {
             </div>
             <div className="panel-body">
                 <div className="row">
-                    <div className="col-lg-6">
+                    <div className="col-lg-12">
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
                                 <label>Manufacturer Name</label>
-                                <input className="form-control" onChange={this.handleChange} placeholder="Manufacturer Name" type="text" name="name"/>
+                                <input 
+                                className="form-control"
+                                 onChange={this.handleChange} 
+                                 value={this.state.name}
+                                 placeholder="Manufacturer Name" 
+                                 type="text" 
+                                 name="name"/>
                             </div>
-                            <input type="submit" value="Sumbit" className="btn btn-success"/>
+                            <input type="submit" value="Sumbit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
                     </div>
                 </div>
@@ -51,4 +66,4 @@ class CreateManufacturer extends Component {
   }
 }
 
-export default CreateManufacturer;
+export default connect(null, { postAPI, getManufacturers })(CreateManufacturer);

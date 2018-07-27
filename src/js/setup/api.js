@@ -1,6 +1,5 @@
 import axios from 'axios';
-import React from "react";
-import { Code } from 'react-content-loader';
+// import React from "react";
 
 const base_url = 'http://localhost:57732/api';
 const content_type = 'application/json';
@@ -38,13 +37,33 @@ function PutFunction(url, param, data){
     return axios.put(url + param, data)
 }
 
-function LoadingAndError(isLoading, isError){
-    if (isLoading) {
-        return <Code />;
-    }
-  
-    if (isError) {
-    return <p>{isError.message}</p>;
+class initialDetailAcctg {
+    laptopSpec = {
+        serialNo:'',
+        modelId: '',
+        battery:'',
+        adapter:'',
+        memoryId:'',
+        hardDiskId:'',
+        videoCardId:'',
+        macAddress:'',
+        manufacturerId:''
+    };
+    details= {
+        assetTag: '',
+        categoryId: '',
+        status: '',
+        assignedTo: '',
+        idAddress: '',
+        notes:''
+    };
+    acctg={
+        poNo: '',
+        drNo: '',
+        siNo: '',
+        deliveryDate: '',
+        purchaseCost: '',
+        supplierId: ''
     }
 }
 
@@ -103,6 +122,7 @@ export default {
     Keyword : Keyword,
     GetWithParameter : GetWithParameter,
     Get : Get,
+    GetAPI: GetAPI,
     PostFunction : PostFunction,
     PutFunction : PutFunction,
     Id: '/',
@@ -119,6 +139,5 @@ export default {
     Suppliers : '/Suppliers',
     Status : '/statustypes',
     FieldName: new FieldName(),
-    GetAPI: GetAPI,
-    LoadingAndError: LoadingAndError,
+    initialDetailAcctg: new initialDetailAcctg()
 }

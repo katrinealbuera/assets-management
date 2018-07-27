@@ -60,18 +60,13 @@ function Sidebar() {
                         </NavLink>
                   </li>
                   <li>
-                        <NavLink to="/">
-                            <i className="fa fa-plus fa-fw"></i> SIZES
+                        <NavLink to="/sizes">
+                            <i className="glyphicon glyphicon-plus fa-fw"></i> SIZES
                         </NavLink>
                   </li>
                   <li>
                         <NavLink to="/supplier">
                             <i className="glyphicon glyphicon-plus fa-fw"></i> SUPPLIERS
-                        </NavLink>
-                  </li>
-                  <li>
-                        <NavLink to="/">
-                            <i className="glyphicon glyphicon-plus fa-fw"></i> TYPES
                         </NavLink>
                   </li>
               </ul>
