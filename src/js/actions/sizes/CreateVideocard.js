@@ -2,7 +2,13 @@ import React, { Component } from "react";
 import setup from '../../setup/api';
 import Vcard from '../../../views/sizes/Vcard';
 import { connect } from 'react-redux';
+import { Code } from 'react-content-loader';
 import { putAPI, getVCards } from '../../../actions/assetAction';
+import { validateSize } from '../../validation/validateInput';
+
+const requiredInput = {
+  color: 'red'
+}
 
 class CreateVcard extends Component {
 
@@ -12,20 +18,31 @@ class CreateVcard extends Component {
     this.state = {
       isEditing: false,
       sizeId: null,
+      errors: {},
     }
-
-    this.handleEditBtnClick = this.handleEditBtnClick.bind(this);
   }
 
   componentWillMount() {
+    this.setState({isLoading:true})
     this.props.getVCards();
+    this.setState({isLoading:false})
   }
 
   handleInputChange = (event) => {
     this.setState({ size : event.target.value})
   }
+  
+  isValid() {
+    const { errors, isValid } = validateSize(this.state);
 
-  handleEditBtnClick = function(index, size, event) {
+    if (!isValid) {
+      this.setState({errors});
+    }
+
+    return isValid;
+  }
+
+  handleEditBtnClick = (index, size, event) => {
     event.preventDefault();
 
     this.setState({
@@ -39,7 +56,8 @@ class CreateVcard extends Component {
   }
 
     if (this.state.isEditing) {
-      this.props.putAPI(setup.BASE_URL + setup.Sizes.Videocard + setup.Id, index, newSize)
+      if (this.isValid()) { 
+        this.props.putAPI(setup.BASE_URL + setup.Sizes.Videocard + setup.Id, index, newSize)
         .then(response => {
           this.setState({sizeId: null, isEditing: false})
         })
@@ -47,13 +65,20 @@ class CreateVcard extends Component {
           this.props.getVCards();
         })
         .catch(error => console.log(error));
+        this.setState({errors: {}});
+      }
     }
-
     this.setState({isEditing: true})
-
   }
 
   render() {
+    
+    const {isLoading} = this.props;
+    const { errors } = this.state;
+		
+    if (isLoading) {
+    return <Code/>;
+    }
 
     var vcardsItem = this.props.vcards.map(function(props, index) {
         return(
@@ -67,6 +92,7 @@ class CreateVcard extends Component {
                         className="form-control"
                         defaultValue={props.size} 
                         onChange={this.handleInputChange}/>
+                 <p style={requiredInput}>{errors.size}</p>
                 </td>
               :
                 <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size}</p></td>       
@@ -93,7 +119,7 @@ class CreateVcard extends Component {
                       <div className="panel-heading">
                           <p> Edit Videocard Size </p>
                       </div>
-                      <table className="table table-hover">
+                      <table className="table table-striped table-hover table-borderless">
                           <thead>
                               <tr>
                                   <th>ID</th>
@@ -115,7 +141,8 @@ class CreateVcard extends Component {
 }
 
 const mapStateToProps = state => ({
-    vcards: state.vcards.vcardList
+    vcards: state.vcards.vcardList,
+    isLoading: state.vcards.isLoading
   })
   
   export default connect(mapStateToProps, { getVCards, putAPI })(CreateVcard);

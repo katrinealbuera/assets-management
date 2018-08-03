@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import setup from '../../setup/api';
 import { connect } from 'react-redux';
 import { postAPI, getSuppliers } from '../../../actions/assetAction';
+import { Textbox } from 'react-inputs-validation';
 
 class CreateSupplier extends Component {
     constructor(props){
@@ -10,15 +11,9 @@ class CreateSupplier extends Component {
         this.state = {
             name: ''
         }
-
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange = event => {
-        this.setState({[event.target.name] : event.target.value})
-    }
-
-    handleSubmit(event){
+    handleSubmit = (event) => {
         event.preventDefault();
         
         const newName = {
@@ -28,7 +23,7 @@ class CreateSupplier extends Component {
         this.props.postAPI(setup.BASE_URL + setup.Suppliers, newName)
             .then(() => {
                 this.props.getSuppliers();
-            });
+            }).catch(error => console.log(error))
         this.setState({name: ''});
     }
 
@@ -46,13 +41,19 @@ class CreateSupplier extends Component {
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
                                 <label>Supplier Name</label>
-                                <input 
-                                className="form-control" 
-                                onChange={this.handleChange} 
-                                value={this.state.name}
-                                placeholder="Supplier Name" 
-                                type="text" 
-                                name="name"/>
+                                <Textbox
+                                    tabIndex="1" id={'name'} name="name"
+                                    type="text" value={this.state.name} placeholder="Supplier Name"
+                                    onChange={(name, e) => {
+                                        this.setState({ name })
+                                    }} 
+                                    onBlur={() => {}}
+                                    validationOption={{
+                                        name: 'Supplier Name',
+                                        check: true, 
+                                        required: true 
+                                    }} />
+                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
                             <input type="submit" value="Submit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
@@ -65,4 +66,8 @@ class CreateSupplier extends Component {
   }
 }
 
-export default connect(null, { postAPI, getSuppliers })(CreateSupplier);
+const mapStateToProps = state => ({
+    error: state.error.error
+  })
+
+export default connect(mapStateToProps, { postAPI, getSuppliers })(CreateSupplier);

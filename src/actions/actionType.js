@@ -8,5 +8,6 @@ export const GET_MEMORY = 'GET_MEMORY';
 export const GET_VCARD = 'GET_VCARD';
 export const GET_STATUS = 'GET_STATUS';
 export const GET_ASSET = 'GET_ASSET';
+export const GET_USER = 'GET_USER';
 
 

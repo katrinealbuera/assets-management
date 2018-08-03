@@ -1,8 +1,14 @@
 import React, { Component } from "react";
 import setup from '../../setup/api';
+import { Code } from 'react-content-loader';
 import Harddisk from '../../../views/sizes/Harddisk';
 import { connect } from 'react-redux';
 import { putAPI, getDisks } from '../../../actions/assetAction';
+import { validateSize } from '../../validation/validateInput';
+
+const requiredInput = {
+  color: 'red'
+}
 
 class CreateHarddisk extends Component {
 
@@ -12,20 +18,31 @@ class CreateHarddisk extends Component {
     this.state = {
       isEditing: false,
       sizeId: null,
+      errors: {},
     }
-
-    this.handleEditBtnClick = this.handleEditBtnClick.bind(this);
   }
 
   componentWillMount() {
+    this.setState({isLoading:true})
     this.props.getDisks();
+    this.setState({isLoading:false})
   }
 
   handleInputChange = (event) => {
     this.setState({ size : event.target.value})
   }
 
-  handleEditBtnClick = function(index, size, event) {
+  isValid() {
+    const { errors, isValid } = validateSize(this.state);
+
+    if (!isValid) {
+      this.setState({errors});
+    }
+
+    return isValid;
+  }
+
+  handleEditBtnClick = (index, size, event) => {
     event.preventDefault();
 
     this.setState({
@@ -36,10 +53,11 @@ class CreateHarddisk extends Component {
     let newSize = {
       id: index,
       size: this.state.size
-  }
+    }
 
     if (this.state.isEditing) {
-      this.props.putAPI(setup.BASE_URL + setup.Sizes.Harddisk + setup.Id, index, newSize)
+      if (this.isValid()) {
+        this.props.putAPI(setup.BASE_URL + setup.Sizes.Harddisk + setup.Id, index, newSize)
         .then(response => {
           this.setState({sizeId: null, isEditing: false})
         })
@@ -47,13 +65,20 @@ class CreateHarddisk extends Component {
           this.props.getDisks();
         })
         .catch(error => console.log(error));
+        this.setState({errors: {}});
+      }
     }
-
     this.setState({isEditing: true})
-
   }
 
-  render() {
+  render() 
+  {
+    const {isLoading} = this.props;
+    const { errors } = this.state;
+		
+    if (isLoading) {
+    return <Code/>;
+    }
 
     var memoryItem = this.props.disks.map(function(props, index) {
         return(
@@ -67,6 +92,7 @@ class CreateHarddisk extends Component {
                         className="form-control"
                         defaultValue={props.size} 
                         onChange={this.handleInputChange}/>
+                  <p style={requiredInput}>{errors.size}</p>
                 </td>
               :
                 <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size}</p></td>       
@@ -93,7 +119,7 @@ class CreateHarddisk extends Component {
                       <div className="panel-heading">
                           <p> Edit Disk Size </p>
                       </div>
-                      <table className="table table-hover">
+                      <table className="table table-striped table-hover table-borderless">
                           <thead>
                               <tr>
                                   <th>ID</th>
@@ -115,7 +141,8 @@ class CreateHarddisk extends Component {
 }
 
 const mapStateToProps = state => ({
-    disks: state.disks.diskList
+    disks: state.disks.diskList,
+    isLoading: state.disks.isLoading
   })
   
   export default connect(mapStateToProps, { getDisks, putAPI })(CreateHarddisk);

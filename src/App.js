@@ -6,6 +6,7 @@ import store from './Store';
 import Sidebar from './views/Sidebar';
 import Index from './views/Index';
 import CreateAsset from '../src/js/actions/asset/CreateAsset';
+import EditAsset from '../src/js/actions/asset/EditAsset';
 import Error from './views/error/Error';
 import Model from './views/model/Model';
 import Processor from './views/processor/Processor';
@@ -13,8 +14,10 @@ import Supplier from './views/supplier/Supplier';
 import Category from './views/categories/Categories';
 import Manufacturer from './views/manufacturer/Manufacturer';
 import Sizes from './views/sizes/Sizes';
+import Login from './views/login/Login';
 
 class App extends Component {
+
   render() {
     return (
       <Provider store={store}>
@@ -23,8 +26,10 @@ class App extends Component {
               <div>
                 <Sidebar />
                 <Switch>
-                  <Route exact path="/" component={Index} />
-                  <Route exact path="/asset" component={CreateAsset} />
+                  <Route exact path="/home" component={Index}/>
+                  <Route exact path="/" component={Login}/>
+                  <Route exact path="/add_asset" component={CreateAsset} />
+                  <Route exact path="/edit_asset" component={EditAsset} />
                   <Route exact path="/model" component={Model} />
                   <Route exact path="/processor" component={Processor} />
                   <Route exact path="/supplier" component={Supplier} />

@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import React from "react";
 
-const base_url = 'http://localhost:57732/api';
+const base_url = 'http://localhost:61333/api';
 const content_type = 'application/json';
 const ShowAll = '?ShowAll=';
 const Keyword = '?keyword=';
@@ -91,8 +91,9 @@ class FieldName {
     Supplier = 'Supplier';
 
     // LAPTOP: Specification
-    LaptopSN = 'Laptop Serial Number';
+    SN = 'Serial Number';
     BatterySN = 'Battery Serial Number';
+    MonitorSN = 'Monitor Serial Number';
     AdapterSN = 'Adapter Serial Number';
     CPU = 'CPU';
     RAM = 'RAM';
@@ -138,6 +139,8 @@ export default {
     },
     Suppliers : '/Suppliers',
     Status : '/statustypes',
+    LoginUser : '/Users/authenticate?',
+    GetUser: '/Users/',
     FieldName: new FieldName(),
     initialDetailAcctg: new initialDetailAcctg()
 }

@@ -11,5 +11,10 @@ export default combineReducers({
     memory: assetReducer,
     vcards: assetReducer,
     status: assetReducer,
-    assets: assetReducer
+    assets: assetReducer,
+    unauthenticated: assetReducer,
+    users: assetReducer,
+    assetId: assetReducer,
+    error: assetReducer,
+    success: assetReducer,
 });

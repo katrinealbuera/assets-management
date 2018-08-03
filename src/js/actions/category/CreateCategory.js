@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import setup from '../../setup/api';
 import { connect } from 'react-redux';
 import { postAPI, getCategories } from '../../../actions/assetAction';
+import { Textbox } from 'react-inputs-validation';
 
 class CreateCategory extends Component {
 
@@ -11,15 +12,9 @@ class CreateCategory extends Component {
         this.state = {
             name: ''
         }
-
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange = event => {
-        this.setState({[event.target.name] : event.target.value})
-    }
-
-    handleSubmit(event){
+    handleSubmit = (event) => {
         event.preventDefault();
         
         const newName = {
@@ -29,7 +24,7 @@ class CreateCategory extends Component {
         this.props.postAPI(setup.BASE_URL + setup.Categories, newName)
             .then(() => {
                 this.props.getCategories();
-            });
+            }).catch(error => console.log(error))
         this.setState({name: ''});
     }
 
@@ -47,13 +42,20 @@ class CreateCategory extends Component {
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
                                 <label>Category</label>
-                                <input 
-                                className="form-control" 
-                                onChange={this.handleChange} 
-                                value={this.state.name}
-                                placeholder="Category" 
-                                type="text" 
-                                name="name"/>
+                                <Textbox
+                                    tabIndex="1" id={'name'} name="name"
+                                    type="text" value={this.state.name} placeholder="Category Name"
+                                    onChange={(name, e) => {
+                                        this.setState({ name });
+                                        console.log(e)
+                                    }} 
+                                    onBlur={() => {}}
+                                    validationOption={{
+                                        name: 'Category Name',
+                                        check: true, 
+                                        required: true
+                                    }}/>
+                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
                             <input type="submit" value="Sumbit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
@@ -66,4 +68,8 @@ class CreateCategory extends Component {
   }
 }
 
-export default connect(null, { postAPI, getCategories })(CreateCategory);
+const mapStateToProps = state => ({
+    error: state.error.error
+  })
+
+export default connect(mapStateToProps, { postAPI, getCategories })(CreateCategory);

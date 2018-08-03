@@ -4,6 +4,12 @@ import CreateProcessor from '../../js/actions/processor/CreateProcessor';
 import setup from '../../js/setup/api';
 import { connect } from 'react-redux';
 import { getProcessors, putAPI } from '../../actions/assetAction';
+import { validateName } from '../../js/validation/validateInput';
+import Error401 from '../../views/error/Error401';
+
+const requiredInput = {
+  color: 'red'
+}
 
 class Processor extends Component {
 
@@ -13,15 +19,28 @@ class Processor extends Component {
     this.state = {
       isEditing: false,
       nameId: null,
+      errors: {},
     }
   }
 
   componentWillMount() {
+    this.setState({isLoading:true})
     this.props.getProcessors();
+    this.setState({isLoading:false})
   }
 
   handleInputChange = (event) => {
     this.setState({[event.target.name] : event.target.value})
+  }
+
+  isValid() {
+    const { errors, isValid } = validateName(this.state);
+
+    if (!isValid) {
+      this.setState({errors});
+    }
+
+    return isValid;
   }
 
   handleEditBtnClick = function(index, name, event) {
@@ -38,7 +57,8 @@ class Processor extends Component {
   }
 
     if (this.state.isEditing) {
-      this.props.putAPI(setup.BASE_URL + setup.Processors + setup.Id, index, newName)
+      if (this.isValid()) {
+        this.props.putAPI(setup.BASE_URL + setup.Processors + setup.Id, index, newName)
         .then(response => {
           this.setState({nameId: null, isEditing: false})
         })
@@ -46,23 +66,22 @@ class Processor extends Component {
           this.props.getProcessors();
         })
         .catch(error => console.log(error));
+        this.setState({errors: {}});
+      }
     }
-
     this.setState({isEditing: true})
-
   }
 
 
   render() {
-    const { isLoading, error } = this.state;
-
-    if (isLoading) {
-      return <Code />;
+    if (!this.props.unauthenticated === 401) {
+      const { isLoading } = this.props;
+      if (isLoading) {
+       return <Code/>;
+      }
     }
 
-    if (error) {
-      return <p>{error.message}</p>;
-    }
+    const { errors } = this.state;
 
     var processorItem = this.props.processors.map(function(props, index) {
       return(
@@ -76,6 +95,7 @@ class Processor extends Component {
                     className="form-control"
                     defaultValue={props.name} 
                     onChange={this.handleInputChange}/>
+             <p style={requiredInput}>{errors.name}</p>
             </td>
           :
             <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>       
@@ -91,46 +111,52 @@ class Processor extends Component {
     
     return (
       <div id="page-wrapper">
-        <div className="row">
-          <div className="col-lg-12">
-              <h1 className="page-header">Processor</h1>
-          </div>
-        </div>
-        <div className="row">
-            <div className="col-lg-5">
-                <div className="panel panel-info">
-                    <div className="panel-heading">
-                        <p> List of Processor </p>
-                    </div>
-                    <div className="panel-body">
-                    <div className="table-responsive table-bordered">
-                      <form>
-                      <table className="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Processor</th>
-                                    <th>Edit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                              { processorItem }
-                            </tbody>
-                        </table>
-                      </form>
-                    </div>
-                </div>
-                </div>
+        {this.props.unauthenticated === 401 ? 
+        <Error401/> :
+        <div>
+          <div className="row">
+            <div className="col-lg-12">
+                <h1 className="page-header">Processor</h1>
             </div>
-          <CreateProcessor getProcessor={this.getProcessor}/>
-        </div>
+          </div>
+          <div className="row">
+              <div className="col-lg-6">
+                  <div className="panel panel-info">
+                      <div className="panel-heading">
+                          <p> List of Processor </p>
+                      </div>
+                      <div className="panel-body">
+                      <div className="table-responsive table-bordered">
+                        <form>
+                        <table className="table table-striped table-hover table-borderless">
+                              <thead>
+                                  <tr>
+                                      <th>ID</th>
+                                      <th>Processor</th>
+                                      <th>Edit</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                { processorItem }
+                              </tbody>
+                          </table>
+                        </form>
+                      </div>
+                  </div>
+                  </div>
+              </div>
+            <CreateProcessor getProcessor={this.getProcessor}/>
+          </div>
+        </div> }
       </div>
     );
   }
 }
 
 const mapStateToProps = state => ({
-  processors: state.processors.processorList
+  processors: state.processors.processorList,
+  isLoading: state.processors.isLoading,
+  unauthenticated: state.unauthenticated.unauthenticatedError
 })
 
 export default connect(mapStateToProps, { getProcessors, putAPI })(Processor);

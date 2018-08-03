@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import setup from '../../js/setup/api';
 import { connect } from 'react-redux';
 import { getVCards, postAPI } from '../../actions/assetAction';
+import { Textbox } from 'react-inputs-validation';
 
 class Vcard extends Component{
     constructor(props){
@@ -10,15 +11,15 @@ class Vcard extends Component{
         this.state = {
             size: ''
         }
-
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange = event => {
-        this.setState({size: event.target.value})
+    checkValidInput = (size) => {
+        if (isNaN(size)){
+            return false;
+        }
     }
 
-    handleSubmit(event){
+    handleSubmit = (event) => {
         event.preventDefault();
         
         const newSize = {
@@ -28,7 +29,7 @@ class Vcard extends Component{
         this.props.postAPI(setup.BASE_URL + setup.Sizes.Videocard, newSize)
             .then(() => {
                 this.props.getVCards();
-            });
+            }).catch(error => console.log(error))
         this.setState({size: ''});
     }
 
@@ -49,12 +50,23 @@ class Vcard extends Component{
                         </thead>
                         <tbody>
                         <tr>
-                            <td><input className="form-control" 
-                                    onChange={this.handleChange} 
-                                    value={this.state.size} 
-                                    type="text" 
-                                    name="size"/></td>
-                            <td><input type="submit" value="Add" className={this.state.size ? 'btn btn-success' : 'btn btn-success disabled'}/></td>
+                            <td>
+                                <Textbox
+                                    tabIndex="1" id={'size'} name="name" type="text" value={this.state.size} 
+                                    onChange={(size, e) => {
+                                        this.setState({ size })
+                                    }} 
+                                    onBlur={() => {}}
+                                    validationOption={{
+                                        name: 'Size',
+                                        type: 'number',
+                                        check: true, 
+                                        required: true 
+                                    }} />
+                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
+                            </td>
+                            <td><input type="submit" value="Add" className={(this.checkValidInput(this.state.size) | this.state.size) 
+                                ? 'btn btn-success' : 'btn btn-success disabled'}/></td>
                             </tr>
                         </tbody>
                     </table>
@@ -65,4 +77,8 @@ class Vcard extends Component{
     }
 }
 
-export default connect(null, { postAPI, getVCards })(Vcard);
+const mapStateToProps = state => ({
+    error: state.error.error
+  })
+
+export default connect(mapStateToProps, { postAPI, getVCards })(Vcard);

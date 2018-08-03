@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import setup from '../../setup/api';
 import { connect } from 'react-redux';
 import { postAPI, getProcessors } from '../../../actions/assetAction';
+import { Textbox } from 'react-inputs-validation';
 
 class CreateProcessor extends Component {
 
@@ -11,15 +12,9 @@ class CreateProcessor extends Component {
         this.state = {
             name: ''
         }
-
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange = event => {
-        this.setState({[event.target.name] : event.target.value})
-    }
-
-    handleSubmit(event){
+    handleSubmit = (event) => {
         event.preventDefault();
         
         const newName = {
@@ -29,7 +24,7 @@ class CreateProcessor extends Component {
         this.props.postAPI(setup.BASE_URL + setup.Processors, newName)
             .then(() => {
                 this.props.getProcessors();
-            });
+            }).catch(error => console.log(error))
         this.setState({name: ''});
     }
 
@@ -46,13 +41,20 @@ class CreateProcessor extends Component {
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
                                 <label>Processor Name</label>
-                                <input 
-                                className="form-control" 
-                                onChange={this.handleChange} 
-                                value={this.state.name}
-                                placeholder="Processor Name" 
-                                type="text"
-                                 name="name"/>
+                                <Textbox
+                                    tabIndex="1" id={'name'} name="name"
+                                    type="text" value={this.state.name} placeholder="Processor Name"
+                                    onChange={(name, e) => {
+                                        this.setState({ name })
+                                    }} 
+                                    onBlur={() => {}}
+                                    validationOption={{
+                                        name: 'Processor Name',
+                                        check: true, 
+                                        required: true 
+                                    }} />
+                                   
+                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
                             <input type="submit" value="Sumbit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
@@ -65,4 +67,8 @@ class CreateProcessor extends Component {
   }
 }
 
-export default connect(null, { postAPI, getProcessors })(CreateProcessor);
+const mapStateToProps = state => ({
+    error: state.error.error,
+  })
+
+export default connect(mapStateToProps, { postAPI, getProcessors })(CreateProcessor);

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import setup from '../../setup/api';
 import { connect } from 'react-redux';
 import { postAPI, getModels } from '../../../actions/assetAction';
+import { Textbox } from 'react-inputs-validation';
 
 class CreateModel extends Component {
 
@@ -9,17 +10,11 @@ class CreateModel extends Component {
         super(props);
 
         this.state = {
-            name: ''
+            name: '',
         }
-
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    handleChange = event => {
-        this.setState({[event.target.name] : event.target.value})
-    }
-
-    handleSubmit(event){
+    handleSubmit = (event) => {
         event.preventDefault();
         
         const newName = {
@@ -27,14 +22,13 @@ class CreateModel extends Component {
         }
 
         this.props.postAPI(setup.BASE_URL + setup.Models, newName)
-            .then(() => {
+            .then((response) => {
                 this.props.getModels();
-            });
+            })
         this.setState({name: ''});
     }
 
   render() {
-
     return (
         <div className="col-lg-6">
         <div className="panel panel-success">
@@ -47,11 +41,19 @@ class CreateModel extends Component {
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
                                 <label>{setup.FieldName.Model}</label>
-                                <input className="form-control" 
-                                        onChange={this.handleChange} 
-                                        value={this.state.name} 
-                                        placeholder="Model Name" 
-                                        type="text" name="name"/>
+                                <Textbox
+                                    tabIndex="1" id={'name'} name="name"
+                                    type="text" value={this.state.name} placeholder="Model Name"
+                                    onChange={(name, e) => {
+                                        this.setState({ name })
+                                    }} 
+                                    onBlur={() => {}}
+                                    validationOption={{
+                                        name: 'Model Name',
+                                        check: true, 
+                                        required: true 
+                                    }} />
+                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
                             <input type="submit" value="Sumbit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
@@ -63,5 +65,8 @@ class CreateModel extends Component {
     );
   }
 }
+const mapStateToProps = state => ({
+    error: state.error.error,
+  })
 
-export default connect(null, { postAPI, getModels })(CreateModel);
+export default connect(mapStateToProps, { postAPI, getModels })(CreateModel);
