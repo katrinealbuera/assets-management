@@ -42,7 +42,12 @@ return (
                             <i className="glyphicon glyphicon-log-in"></i> LOGOUT
                         </a>
                     </li>
-                    : null }
+                    : 
+                    <li>
+                        <NavLink to="/">
+                            <i className="fa fa-home"></i> LOGIN
+                        </NavLink>
+                    </li> }
                     <li>
                         <NavLink to="/home">
                         <i className="fa fa-home"></i> HOME

@@ -275,7 +275,7 @@ class EditAsset extends Component {
         <div id="page-wrapper">
         { this.state.isEditing ? null : 
                 this.props.unauthenticated === 401 ? 
-                    <div id="page-wrapper"><Error401/></div> :
+                <Error401/> :
                     <div>
                         <div className="row">
                             <div className="col-lg-12">
