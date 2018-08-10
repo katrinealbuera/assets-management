@@ -5,10 +5,7 @@ import { connect } from 'react-redux';
 import { Code } from 'react-content-loader';
 import { putAPI, getMemories } from '../../../actions/assetAction';
 import { validateSize } from '../../validation/validateInput';
-
-const requiredInput = {
-  color: 'red'
-}
+import { CommonPager } from '../../../views/common/pager';
 
 class CreateMemory extends Component {
 
@@ -19,7 +16,14 @@ class CreateMemory extends Component {
       isEditing: false,
       sizeId: null,
       errors: {},
+      currentPage: '',
+      totalPage: '',
+      total: '',
     }
+  }
+
+  onPageChange = (page) => {
+    this.props.getMemories(page, false)
   }
 
   componentWillMount() {
@@ -57,7 +61,7 @@ class CreateMemory extends Component {
 
     if (this.state.isEditing) {
       if (this.isValid()) {
-        this.props.putAPI(setup.BASE_URL + setup.Sizes.Memory + setup.Id, index, newSize)
+        this.props.putAPI(setup.BASE_URL + setup.Sizes.Memory, index, newSize)
         .then(response => {
           this.setState({sizeId: null, isEditing: false})
         })
@@ -92,10 +96,10 @@ class CreateMemory extends Component {
                         className="form-control"
                         defaultValue={props.size} 
                         onChange={this.handleInputChange}/>
-                  <p style={requiredInput}>{errors.size}</p>
+                  <p style={setup.requiredInput}>{errors.size}</p>
                 </td>
               :
-                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size}</p></td>       
+                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size} {setup.FieldName.GBUnit}</p></td>       
               }
               <td>
                 <input type="submit" 
@@ -131,6 +135,8 @@ class CreateMemory extends Component {
                               { memoryItem }
                           </tbody>
                       </table>
+                      {(this.props.totalPage && this.props.currentPage) 
+                          && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                   </div>
               </div>
           </div>
@@ -142,7 +148,11 @@ class CreateMemory extends Component {
 
 const mapStateToProps = state => ({
   memory: state.memory.memoryList,
-  isLoading: state.memory.isLoading
+  isLoading: state.memory.isLoading,
+  currentPage: state.memory.memoryCurrentPage,
+  totalPage: state.memory.memoryTotalPage,
+  total: state.memory.memoryTotal,
+  page: state.page.page,
   })
   
   export default connect(mapStateToProps, { getMemories, putAPI })(CreateMemory);

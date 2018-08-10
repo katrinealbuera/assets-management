@@ -3,13 +3,10 @@ import { Code } from 'react-content-loader';
 import CreateProcessor from '../../js/actions/processor/CreateProcessor';
 import setup from '../../js/setup/api';
 import { connect } from 'react-redux';
-import { getProcessors, putAPI } from '../../actions/assetAction';
+import { getProcessors, putAPI, clearError } from '../../actions/assetAction';
 import { validateName } from '../../js/validation/validateInput';
 import Error401 from '../../views/error/Error401';
-
-const requiredInput = {
-  color: 'red'
-}
+import { CommonPager } from '../common/pager';
 
 class Processor extends Component {
 
@@ -20,10 +17,18 @@ class Processor extends Component {
       isEditing: false,
       nameId: null,
       errors: {},
+      currentPage: '',
+      totalPage: '',
+      total: '',
     }
   }
 
+  onPageChange = (page) => {
+    this.props.getModels(page, false)
+  }
+  
   componentWillMount() {
+    this.props.clearError()
     this.setState({isLoading:true})
     this.props.getProcessors();
     this.setState({isLoading:false})
@@ -34,7 +39,7 @@ class Processor extends Component {
   }
 
   isValid() {
-    const { errors, isValid } = validateName(this.state);
+    const { errors, isValid } = validateName(this.state, 30);
 
     if (!isValid) {
       this.setState({errors});
@@ -58,7 +63,7 @@ class Processor extends Component {
 
     if (this.state.isEditing) {
       if (this.isValid()) {
-        this.props.putAPI(setup.BASE_URL + setup.Processors + setup.Id, index, newName)
+        this.props.putAPI(setup.BASE_URL + setup.Processors, index, newName)
         .then(response => {
           this.setState({nameId: null, isEditing: false})
         })
@@ -74,6 +79,8 @@ class Processor extends Component {
 
 
   render() {
+    var isAuth = localStorage.getItem('user');
+
     if (!this.props.unauthenticated === 401) {
       const { isLoading } = this.props;
       if (isLoading) {
@@ -95,7 +102,7 @@ class Processor extends Component {
                     className="form-control"
                     defaultValue={props.name} 
                     onChange={this.handleInputChange}/>
-             <p style={requiredInput}>{errors.name}</p>
+             <p style={setup.requiredInput}>{errors.name}</p>
             </td>
           :
             <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>       
@@ -111,12 +118,13 @@ class Processor extends Component {
     
     return (
       <div id="page-wrapper">
-        {this.props.unauthenticated === 401 ? 
+        {this.props.unauthenticated === 401 || !isAuth ? 
         <Error401/> :
         <div>
           <div className="row">
             <div className="col-lg-12">
                 <h1 className="page-header">Processor</h1>
+                {this.props.error ? <p className="alert alert-danger">{this.props.error.errorMessages}</p>: null }
             </div>
           </div>
           <div className="row">
@@ -140,6 +148,8 @@ class Processor extends Component {
                                 { processorItem }
                               </tbody>
                           </table>
+                          {(this.props.totalPage && this.props.currentPage) 
+                              && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                         </form>
                       </div>
                   </div>
@@ -156,7 +166,12 @@ class Processor extends Component {
 const mapStateToProps = state => ({
   processors: state.processors.processorList,
   isLoading: state.processors.isLoading,
-  unauthenticated: state.unauthenticated.unauthenticatedError
+  unauthenticated: state.unauthenticated.unauthenticatedError,
+  currentPage: state.models.processorCurrentPage,
+  totalPage: state.models.processorTotalPage,
+  total: state.models.processorTotal,
+  page: state.page.page,
+     error: state.error.error,
 })
 
-export default connect(mapStateToProps, { getProcessors, putAPI })(Processor);
+export default connect(mapStateToProps, { getProcessors, putAPI, clearError })(Processor);

@@ -5,10 +5,7 @@ import Harddisk from '../../../views/sizes/Harddisk';
 import { connect } from 'react-redux';
 import { putAPI, getDisks } from '../../../actions/assetAction';
 import { validateSize } from '../../validation/validateInput';
-
-const requiredInput = {
-  color: 'red'
-}
+import { CommonPager } from '../../../views/common/pager';
 
 class CreateHarddisk extends Component {
 
@@ -19,9 +16,16 @@ class CreateHarddisk extends Component {
       isEditing: false,
       sizeId: null,
       errors: {},
+      currentPage: '',
+      totalPage: '',
+      total: '',
     }
   }
 
+  onPageChange = (page) => {
+    this.props.getDisks(page, false)
+  }
+  
   componentWillMount() {
     this.setState({isLoading:true})
     this.props.getDisks();
@@ -57,7 +61,7 @@ class CreateHarddisk extends Component {
 
     if (this.state.isEditing) {
       if (this.isValid()) {
-        this.props.putAPI(setup.BASE_URL + setup.Sizes.Harddisk + setup.Id, index, newSize)
+        this.props.putAPI(setup.BASE_URL + setup.Sizes.Harddisk, index, newSize)
         .then(response => {
           this.setState({sizeId: null, isEditing: false})
         })
@@ -92,10 +96,10 @@ class CreateHarddisk extends Component {
                         className="form-control"
                         defaultValue={props.size} 
                         onChange={this.handleInputChange}/>
-                  <p style={requiredInput}>{errors.size}</p>
+                  <p style={setup.requiredInput}>{errors.size}</p>
                 </td>
               :
-                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size}</p></td>       
+                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size} {setup.FieldName.GBUnit}</p></td>       
               }
               <td>
                 <input type="submit" 
@@ -131,6 +135,8 @@ class CreateHarddisk extends Component {
                               { memoryItem }
                           </tbody>
                       </table>
+                      {(this.props.totalPage && this.props.currentPage) 
+                          && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                   </div>
               </div>
           </div>
@@ -142,7 +148,11 @@ class CreateHarddisk extends Component {
 
 const mapStateToProps = state => ({
     disks: state.disks.diskList,
-    isLoading: state.disks.isLoading
+    isLoading: state.disks.isLoading,
+    currentPage: state.models.diskCurrentPage,
+    totalPage: state.models.diskTotalPage,
+    total: state.models.diskTotal,
+    page: state.page.page,
   })
   
   export default connect(mapStateToProps, { getDisks, putAPI })(CreateHarddisk);

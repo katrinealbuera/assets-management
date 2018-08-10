@@ -3,13 +3,12 @@ import PropTypes from 'prop-types';
 import { NavLink } from "react-router-dom";
 import { connect } from 'react-redux';
 import { signOut } from '../actions/assetAction';
-import { getUser } from '../actions/assetAction';
+import { getUserId } from '../actions/assetAction';
 
 class Sidebar extends Component {
 
-    onclick = (event) => {
-        this.props.signOut();
-        this.RedirectToLogin();
+    onclick = () => {
+        this.props.signOut(this.RedirectToLogin);
         window.location.reload(true);
     }
 
@@ -18,12 +17,11 @@ class Sidebar extends Component {
     }
 
     getUser = () => {
-        this.props.getUser(localStorage.getItem('id'));
+        this.props.getUserId(localStorage.getItem('id'));
       }
 
 render() {
     var isAuth = localStorage.getItem('user');
-    var isAuthId = localStorage.getItem('id');
     
 return (
 <div onLoad={this.getUser}>
@@ -37,20 +35,25 @@ return (
             </div>
               <ul className="nav">
                     { isAuth ? 
-                    <li className="dropdown">
-                        <a className="dropdown-toggle" data-toggle="dropdown" onClick={this.onclick}>
+                    <li>
+                        <a className="dropdown-toggle" onClick={this.onclick}>
                             <i className="glyphicon glyphicon-log-in"></i> LOGOUT
                         </a>
                     </li>
                     : 
                     <li>
                         <NavLink to="/">
-                            <i className="fa fa-home"></i> LOGIN
+                            <i className="glyphicon glyphicon-log-in"></i> LOGIN
                         </NavLink>
                     </li> }
                     <li>
-                        <NavLink to="/home">
+                        <NavLink to="/">
                         <i className="fa fa-home"></i> HOME
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to="/new_user">
+                            <i className="fa fa-user"></i> USER
                         </NavLink>
                     </li>
                     <li>
@@ -93,11 +96,11 @@ return (
                             <i className="fa fa-edit"></i> SUPPLIERS
                         </NavLink>
                     </li>
-            </ul>
+                </ul>
           </div>
       </div>
     </nav>
-  </div>
+</div>
     )}
 }
 
@@ -110,4 +113,4 @@ Sidebar.contextTypes = {
     router: PropTypes.object.isRequired
 } 
 
-export default connect(mapStateToProps, {signOut, getUser})(Sidebar);
+export default connect(mapStateToProps, {signOut, getUserId})(Sidebar);

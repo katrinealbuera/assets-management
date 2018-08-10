@@ -9,7 +9,9 @@ class CreateSupplier extends Component {
         super(props);
 
         this.state = {
-            name: ''
+            name: '',
+            hasError: false,
+            isValidForm: false,
         }
     }
 
@@ -20,13 +22,14 @@ class CreateSupplier extends Component {
             name: this.state.name
         }
 
+        if (this.state.isValidForm) {
         this.props.postAPI(setup.BASE_URL + setup.Suppliers, newName)
             .then(() => {
-                this.props.getSuppliers();
+                this.props.getSuppliers(1, false);
             }).catch(error => console.log(error))
+        }
         this.setState({name: ''});
     }
-
 
   render() {
     return (
@@ -45,17 +48,23 @@ class CreateSupplier extends Component {
                                     tabIndex="1" id={'name'} name="name"
                                     type="text" value={this.state.name} placeholder="Supplier Name"
                                     onChange={(name, e) => {
-                                        this.setState({ name })
+                                        if(name.length > 100 | !name) {
+                                            this.setState({ name, hasError: true, isValidForm: false })
+                                        }
+                                        else {
+                                            this.setState({ name, hasError: false, isValidForm: true  })
+                                        }
                                     }} 
                                     onBlur={() => {}}
                                     validationOption={{
                                         name: 'Supplier Name',
                                         check: true, 
-                                        required: true 
+                                        required: true,
+                                        max: '100'
                                     }} />
-                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
-                            <input type="submit" value="Submit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
+                            <input type="submit" value="Submit" className={this.state.name && !this.state.hasError
+                                ? 'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
                     </div>
                 </div>
@@ -66,8 +75,5 @@ class CreateSupplier extends Component {
   }
 }
 
-const mapStateToProps = state => ({
-    error: state.error.error
-  })
 
-export default connect(mapStateToProps, { postAPI, getSuppliers })(CreateSupplier);
+export default connect(null, { postAPI, getSuppliers })(CreateSupplier);

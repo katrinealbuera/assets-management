@@ -3,10 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { postUser } from '../../actions/assetAction';
 import { Textbox } from 'react-inputs-validation';
-
-const requiredInput = {
-    color: 'red'
-}
+import setup from '../../js/setup/api';
 
 class Login extends Component {
 
@@ -17,7 +14,8 @@ class Login extends Component {
             userName: '',
             password: '',
             errors: {},
-            isLoading : false
+            isLoading : false,
+            isValidForm: false,
         }
     }
 
@@ -34,30 +32,34 @@ class Login extends Component {
         this.setState({ errors: {}, isLoading: true});
 
         if (userName && password) {
-           this.props.postUser(userName, password, this.RedirectToHome)
+           if (this.state.isValidForm) { 
+               this.props.postUser(userName, password, this.RedirectToHome)
+           }
         }
     }
 
     RedirectToHome = () => {
-        this.context.router.history.push("/home");
+        this.context.router.history.push("/");
         window.location.reload(true);
     }
 
 render() {
-
-    console.log(this.props.error)
-
 var loginForm = (
 <form onSubmit={this.handleSubmit}>
     <fieldset>
-        <p style={requiredInput}>{this.props.error === 401 ? 'Invalid Credentials' : null}</p>
+        <p style={setup.requiredInput}>{this.props.error === 401 ? 'Invalid Credentials' : null}</p>
         <div className="form-group input-group">
-            <span className="input-group-addon" role="img" aria-label="Email">@</span>
+            <span className="input-group-addon" role="img" aria-label="Email"><p className="fa fa-user"></p></span>
             <Textbox
-                tabIndex="1" id={'name'} name="userName"
+                tabIndex="1" id={'userName'} name="userName"
                 type="text" value={this.state.userName} placeholder="User Name"
                 onChange={(userName, e) => {
-                    this.setState({ userName })
+                    if(!userName) {
+                        this.setState({ userName, isValidForm: false })
+                    }
+                    else {
+                        this.setState({ userName, isValidForm: true })
+                    }
                 }} 
                 onBlur={() => {}}
                 validationOption={{
@@ -67,12 +69,17 @@ var loginForm = (
                 }} />
         </div>
         <div className="form-group input-group">
-        <span className="input-group-addon" role="img" aria-label="Password">🔑</span>
+        <span className="input-group-addon" role="img" aria-label="Password"><p className="fa fa-key"></p></span>
         <Textbox
-                tabIndex="1" id={'name'} name="userName"
+                tabIndex="1" id={'password'} name="password"
                 type="password" value={this.state.password} placeholder="Password"
                 onChange={(password, e) => {
-                    this.setState({ password })
+                    if(!password) {
+                        this.setState({ password, isValidForm: false })
+                    }
+                    else {
+                        this.setState({ password, isValidForm: true })
+                    }
                 }} 
                 onBlur={() => {}}
                 validationOption={{
@@ -83,26 +90,26 @@ var loginForm = (
         </div>
         <input type="submit" 
             className={this.state.userName && this.state.password ? 'btn btn-info btn-lg btn-block' : 'btn btn-info btn-lg btn-block disabled'}
-            value="Login"/>
+            value="Login"/><br/>
     </fieldset>
 </form>
     );
 
     return (
-<div id="page-wrapper">
-    <div className="row">
-        <div className="col-md-6 col-lg-6 col-md-offset-3">
-            <div className="login-panel panel panel-primary">
-                <div className="panel-heading">
-                    <h3 className="panel-title">Login</h3>
-                </div>
-                <div className="panel-body">
-                    { loginForm }
+    <div className="container">
+        <div className="row">
+            <div className="col-md-6 col-md-offset-3">
+                <div className="login-panel panel panel-default">
+                    <div className="panel-heading">
+                        <h3 className="panel-title">Please Sign In</h3>
+                    </div>
+                    <div className="panel-body">
+						 { loginForm }
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
     )
   }
 }

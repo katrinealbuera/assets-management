@@ -10,7 +10,9 @@ class CreateCategory extends Component {
         super(props);
 
         this.state = {
-            name: ''
+            name: '',
+            hasError: false,
+            isValidForm: false,
         }
     }
 
@@ -21,10 +23,12 @@ class CreateCategory extends Component {
             name: this.state.name
         }
 
-        this.props.postAPI(setup.BASE_URL + setup.Categories, newName)
+        if (this.state.isValidForm){
+            this.props.postAPI(setup.BASE_URL + setup.Categories, newName)
             .then(() => {
                 this.props.getCategories();
             }).catch(error => console.log(error))
+        }
         this.setState({name: ''});
     }
 
@@ -46,18 +50,23 @@ class CreateCategory extends Component {
                                     tabIndex="1" id={'name'} name="name"
                                     type="text" value={this.state.name} placeholder="Category Name"
                                     onChange={(name, e) => {
-                                        this.setState({ name });
-                                        console.log(e)
+                                        if(name.length > 30 || !name) {
+                                            this.setState({ name, hasError: true, isValidForm: false })
+                                        }
+                                        else {
+                                            this.setState({ name, hasError: false, isValidForm: true  })
+                                        }
                                     }} 
                                     onBlur={() => {}}
                                     validationOption={{
                                         name: 'Category Name',
                                         check: true, 
-                                        required: true
+                                        required: true,
+                                        max: '20'
                                     }}/>
-                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
-                            <input type="submit" value="Sumbit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
+                            <input type="submit" value="Sumbit" className={this.state.name  && !this.state.hasError ? 
+                                'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
                     </div>
                 </div>
@@ -68,8 +77,5 @@ class CreateCategory extends Component {
   }
 }
 
-const mapStateToProps = state => ({
-    error: state.error.error
-  })
 
-export default connect(mapStateToProps, { postAPI, getCategories })(CreateCategory);
+export default connect(null, { postAPI, getCategories })(CreateCategory);

@@ -10,12 +10,7 @@ class Harddisk extends Component{
 
         this.state = {
             size: '',
-        }
-    }
-
-    checkValidInput = (size) => {
-        if (isNaN(size)){
-            return false;
+            isValidForm: false,
         }
     }
 
@@ -26,15 +21,16 @@ class Harddisk extends Component{
             size: this.state.size
         }
 
+        if (this.state.isValidForm) {
         this.props.postAPI(setup.BASE_URL + setup.Sizes.Harddisk, newSize)
             .then(() => {
                 this.props.getDisks();
             }).catch(error => console.log(error))
+        }
         this.setState({size: ''});
     }
 
     render(){
-        console.log(this.props.error.errorMessages)
         return(
         <div>
             <div className="panel panel-success">
@@ -55,18 +51,22 @@ class Harddisk extends Component{
                                 <Textbox
                                     tabIndex="1" id={'size'} name="name" type="text" value={this.state.size} 
                                     onChange={(size, e) => {
-                                        this.setState({ size })
+                                        if (isNaN(size) || size.length > 5 || !size){
+                                            this.setState({ size, hasError: true, isValidForm: false })
+                                        }
+                                        else {
+                                            this.setState({ size, hasError: false, isValidForm: true })
+                                        }
                                     }} 
                                     onBlur={() => {}}
                                     validationOption={{
                                         name: 'Size',
                                         type: 'number',
                                         check: true, 
-                                        required: true 
+                                        required: true,
                                     }} />
-                                <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </td>
-                            <td><input type="submit" value="Add" className={(this.checkValidInput(this.state.size) | this.state.size) 
+                            <td><input type="submit" value="Add" className={this.state.size && !this.state.hasError
                                 ? 'btn btn-success' : 'btn btn-success disabled'}/></td>
                             </tr>
                         </tbody>
@@ -78,8 +78,4 @@ class Harddisk extends Component{
     }
 }
 
-const mapStateToProps = state => ({
-    error: state.error.error
-  })
-
-export default connect(mapStateToProps, { postAPI, getDisks })(Harddisk);
+export default connect(null, { postAPI, getDisks })(Harddisk);

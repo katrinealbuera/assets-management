@@ -5,10 +5,7 @@ import { connect } from 'react-redux';
 import { Code } from 'react-content-loader';
 import { putAPI, getVCards } from '../../../actions/assetAction';
 import { validateSize } from '../../validation/validateInput';
-
-const requiredInput = {
-  color: 'red'
-}
+import { CommonPager } from '../../../views/common/pager';
 
 class CreateVcard extends Component {
 
@@ -19,9 +16,16 @@ class CreateVcard extends Component {
       isEditing: false,
       sizeId: null,
       errors: {},
+      currentPage: '',
+      totalPage: '',
+      total: '',
     }
   }
 
+  onPageChange = (page) => {
+    this.props.getVCards(page, false)
+  }
+  
   componentWillMount() {
     this.setState({isLoading:true})
     this.props.getVCards();
@@ -57,7 +61,7 @@ class CreateVcard extends Component {
 
     if (this.state.isEditing) {
       if (this.isValid()) { 
-        this.props.putAPI(setup.BASE_URL + setup.Sizes.Videocard + setup.Id, index, newSize)
+        this.props.putAPI(setup.BASE_URL + setup.Sizes.Videocard, index, newSize)
         .then(response => {
           this.setState({sizeId: null, isEditing: false})
         })
@@ -92,10 +96,10 @@ class CreateVcard extends Component {
                         className="form-control"
                         defaultValue={props.size} 
                         onChange={this.handleInputChange}/>
-                 <p style={requiredInput}>{errors.size}</p>
+                 <p style={setup.requiredInput}>{errors.size}</p>
                 </td>
               :
-                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size}</p></td>       
+                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size} {setup.FieldName.GBUnit}</p></td>       
               }
               <td>
                 <input type="submit" 
@@ -131,6 +135,8 @@ class CreateVcard extends Component {
                               { vcardsItem }
                           </tbody>
                       </table>
+                      {(this.props.totalPage && this.props.currentPage) 
+                          && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                   </div>
               </div>
           </div>
@@ -142,7 +148,11 @@ class CreateVcard extends Component {
 
 const mapStateToProps = state => ({
     vcards: state.vcards.vcardList,
-    isLoading: state.vcards.isLoading
+    isLoading: state.vcards.isLoading,
+    currentPage: state.vcards.vcardCurrentPage,
+    totalPage: state.vcards.vcardTotalPage,
+    total: state.vcards.vcardTotal,
+    page: state.page.page,
   })
   
   export default connect(mapStateToProps, { getVCards, putAPI })(CreateVcard);

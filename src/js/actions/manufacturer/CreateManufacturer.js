@@ -10,7 +10,9 @@ class CreateManufacturer extends Component {
         super(props);
 
         this.state = {
-            name: ''
+            name: '',
+            hasError: false,
+            isValidForm: false,
         }
     }
 
@@ -21,10 +23,12 @@ class CreateManufacturer extends Component {
             name: this.state.name
         }
 
-        this.props.postAPI(setup.BASE_URL + setup.Manufacturers, newName)
+        if (this.state.isValidForm) { 
+            this.props.postAPI(setup.BASE_URL + setup.Manufacturers, newName)
             .then(() => {
-                this.props.getManufacturers();
+                this.props.getManufacturers(1, false);
             }).catch(error => console.log(error))
+        }
         this.setState({name: ''});
     }
 
@@ -46,17 +50,23 @@ class CreateManufacturer extends Component {
                                     tabIndex="1" id={'name'} name="name"
                                     type="text" value={this.state.name} placeholder="Manufacturer Name"
                                     onChange={(name, e) => {
-                                        this.setState({ name })
+                                        if(name.length > 50 | !name) {
+                                            this.setState({ name, hasError: true, isValidForm: false })
+                                        }
+                                        else {
+                                            this.setState({ name, hasError: false, isValidForm: true  })
+                                        }
                                     }} 
                                     onBlur={() => {}}
                                     validationOption={{
                                         name: 'Manufacturer Name',
                                         check: true, 
-                                        required: true 
+                                        required: true,
+                                        max: '50'
                                     }} />
-                               <p>{this.props.error ? this.props.error.errorMessages : null}</p>
                             </div>
-                            <input type="submit" value="Sumbit" className={this.state.name ? 'btn btn-success' : 'btn btn-success disabled'}/>
+                            <input type="submit" value="Sumbit" className={this.state.name && !this.state.hasError ? 
+                                'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
                     </div>
                 </div>
@@ -67,8 +77,5 @@ class CreateManufacturer extends Component {
   }
 }
 
-const mapStateToProps = state => ({
-    error: state.error.error
-  })
 
-export default connect(mapStateToProps, { postAPI, getManufacturers })(CreateManufacturer);
+export default connect(null, { postAPI, getManufacturers })(CreateManufacturer);

@@ -3,13 +3,10 @@ import setup from '../../js/setup/api';
 import { Code } from 'react-content-loader';
 import CreateCategory from '../../js/actions/category/CreateCategory';
 import { connect } from 'react-redux';
-import { getCategories, putAPI } from '../../actions/assetAction';
+import { getCategories, putAPI, clearError } from '../../actions/assetAction';
 import { validateName } from '../../js/validation/validateInput';
 import Error401 from '../../views/error/Error401';
-
-const requiredInput = {
-  color: 'red'
-}
+import { CommonPager } from '../common/pager';
 
 class Category extends Component {
 
@@ -20,10 +17,18 @@ class Category extends Component {
       isEditing: false,
       nameId: null,
       errors: {},
+      currentPage: '',
+      totalPage: '',
+      total: '',
     }
   }
 
+  onPageChange = (page) => {
+    this.props.getCategories(page, false)
+  }
+
   componentWillMount() {
+    this.props.clearError()
     this.setState({isLoading:true})
     this.props.getCategories();
     this.setState({isLoading:false})
@@ -34,7 +39,7 @@ class Category extends Component {
   }
 
   isValid() {
-    const { errors, isValid } = validateName(this.state);
+    const { errors, isValid } = validateName(this.state, 20);
 
     if (!isValid) {
       this.setState({errors});
@@ -58,7 +63,7 @@ class Category extends Component {
 
     if (this.state.isEditing) {
       if (this.isValid()) {
-        this.props.putAPI(setup.BASE_URL + setup.Categories + setup.Id, index, newName)
+        this.props.putAPI(setup.BASE_URL + setup.Categories, index, newName)
         .then(response => {
           this.setState({nameId: null, isEditing: false})
         })
@@ -73,11 +78,7 @@ class Category extends Component {
   }
 
   render() {
-    if (this.props.unauthenticated === 401) {
-
-      console.log(this.props.unauthenticated)
-    }
-    else{
+    if (!this.props.unauthenticated === 401) {
       const { isLoading } = this.props;
       if (isLoading) {
        return <Code/>;
@@ -98,7 +99,7 @@ class Category extends Component {
                     className="form-control"
                     defaultValue={props.name} 
                     onChange={this.handleInputChange}/>
-                    <p style={requiredInput}>{errors.name}</p>
+                    <p style={setup.requiredInput}>{errors.name}</p>
             </td>
           :
             <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>       
@@ -120,6 +121,7 @@ class Category extends Component {
         <div className="row">
             <div className="col-lg-12">
                 <h1 className="page-header">Category</h1>
+                {this.props.error ? <p className="alert alert-danger">{this.props.error.errorMessages}</p>: null }
             </div>
           </div>
           <div className="row">
@@ -143,6 +145,8 @@ class Category extends Component {
                                     {categoryItem}
                                   </tbody>
                               </table>
+                              {(this.props.totalPage && this.props.currentPage) 
+                                  && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                             </form>
                           </div>
                       </div>
@@ -159,7 +163,12 @@ class Category extends Component {
 const mapStateToProps = state => ({
   categories: state.categories.categoryList,
   isLoading: state.categories.isLoading,
-  unauthenticated: state.unauthenticated.unauthenticatedError
+  unauthenticated: state.unauthenticated.unauthenticatedError,
+  currentPage: state.categories.categoryCurrentPage,
+  totalPage: state.categories.categoryTotalPage,
+  total: state.categories.categoryTotal,
+  page: state.page.page,
+      error: state.error.error
 })
 
-export default connect(mapStateToProps, { getCategories, putAPI })(Category);
+export default connect(mapStateToProps, { getCategories, putAPI, clearError })(Category);

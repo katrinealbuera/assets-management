@@ -3,13 +3,10 @@ import { Code } from 'react-content-loader';
 import CreateSupplier from '../../js/actions/supplier/CreateSupplier';
 import setup from '../../js/setup/api';
 import { connect } from 'react-redux';
-import { getSuppliers, putAPI } from '../../actions/assetAction';
+import { getSuppliers, putAPI, clearError } from '../../actions/assetAction';
 import { validateName } from '../../js/validation/validateInput';
 import Error401 from '../../views/error/Error401';
-
-const requiredInput = {
-  color: 'red'
-}
+import { CommonPager } from '../common/pager';
 
 class Supplier extends Component {
 
@@ -20,10 +17,18 @@ class Supplier extends Component {
       isEditing: false,
       nameId: null,
       errors: {},
+      currentPage: '',
+      totalPage: '',
+      total: '',
     }
   }
 
+  onPageChange = (page) => {
+    this.props.getSuppliers(page, false)
+  }
+
   componentWillMount() {
+    this.props.clearError()
     this.setState({isLoading:true})
     this.props.getSuppliers();
     this.setState({isLoading:false})
@@ -34,7 +39,7 @@ class Supplier extends Component {
   }
 
   isValid() {
-    const { errors, isValid } = validateName(this.state);
+    const { errors, isValid } = validateName(this.state, 100);
 
     if (!isValid) {
       this.setState({errors});
@@ -58,7 +63,7 @@ class Supplier extends Component {
 
     if (this.state.isEditing) {
       if (this.isValid()) {
-        this.props.putAPI(setup.BASE_URL + setup.Suppliers + setup.Id, index, newName)
+        this.props.putAPI(setup.BASE_URL + setup.Suppliers, index, newName)
         .then(response => {
           this.setState({nameId: null, isEditing: false})
         })
@@ -73,12 +78,15 @@ class Supplier extends Component {
   }
 
   render() {
+    var isAuth = localStorage.getItem('user');
+
     if (!this.props.unauthenticated === 401) {
       const { isLoading } = this.props;
       if (isLoading) {
        return <Code/>;
       }
     }
+
     const { errors } = this.state;
     
     var supplierItem = this.props.suppliers.map(function(props, index) {
@@ -93,7 +101,7 @@ class Supplier extends Component {
                     className="form-control"
                     defaultValue={props.name} 
                     onChange={this.handleInputChange}/>
-             <p style={requiredInput}>{errors.name}</p>
+             <p style={setup.requiredInput}>{errors.name}</p>
             </td>
           :
             <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.name}</p></td>       
@@ -109,12 +117,13 @@ class Supplier extends Component {
 
     return (
       <div id="page-wrapper">
-      {this.props.unauthenticated === 401 ? 
+      {this.props.unauthenticated === 401 || !isAuth ? 
         <Error401/> :
         <div>
           <div className="row">
             <div className="col-lg-12">
                 <h1 className="page-header">Supplier</h1>
+                {this.props.error ? <p className="alert alert-danger">{this.props.error.errorMessages}</p>: null }
             </div>
           </div>
           <div className="row">
@@ -138,6 +147,8 @@ class Supplier extends Component {
                                 { supplierItem }
                               </tbody>
                           </table>
+                          {(this.props.totalPage && this.props.currentPage) 
+                              && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                         </form>
                       </div>
                   </div>
@@ -154,7 +165,12 @@ class Supplier extends Component {
 const mapStateToProps = state => ({
   suppliers: state.suppliers.supplierList,
   isLoading: state.suppliers.isLoading,
-  unauthenticated: state.unauthenticated.unauthenticatedError
+  unauthenticated: state.unauthenticated.unauthenticatedError,  
+  currentPage: state.suppliers.supplierCurrentPage,
+  totalPage: state.suppliers.supplierTotalPage,
+  total: state.suppliers.supplierTotal,
+  page: state.page.page,
+  error: state.error.error
 })
 
-export default connect(mapStateToProps, { getSuppliers, putAPI })(Supplier);
+export default connect(mapStateToProps, { getSuppliers, putAPI, clearError })(Supplier);

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import React from 'react';
 import setup from '../../src/js/setup/api';
 
 export const GET_MODEL = 'GET_MODEL';
@@ -18,22 +17,38 @@ export const UNAUTHENTICATED = 'unauthenticated_user';
 export const AUTHENTICATION_ERROR = 'authentication_error';
 export const GET_ASSET_ID = 'GET_ASSET_ID';
 export const GET_ERROR = 'GET_ERROR';
+export const GET_USER_ID = 'GET_USER_ID';
+export const GET_STATUS_TYPE = 'GET_STATUS_TYPE';
+export const GET_ASSET_ORDER_BY ='GET_ASSET_ORDER_BY';
+export const GET_ASSET_ORDER_TYPE ='GET_ASSET_ORDER_TYPE';
+export const GET_ASSET_BY_KEYWORD = 'GET_ASSET_BY_KEYWORD';
+export const NEXT_PAGE = 'NEXT_PAGE';
 
+export const nextPage = page => ({
+    type: NEXT_PAGE,
+    page,
+})
+
+const requestHeader = {
+    headers: {
+        'Authorization' : "Bearer " + localStorage.getItem('user'),
+        'Access-Control-Allow-Origin' : '*',
+        'Content-Type' : 'application/json',
+        'Access-Control-Allow-Methods' : 'PUT, GET, POST',
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    }
+}
 
 /** MODEL */
-export const getModels = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Models + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-        }).then((response) => {
+export const getModels = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Models + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
+    .then((response) => {
             dispatch({
                 type: GET_MODEL,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                modelPayload: response.data.list,
+                modelCurrentPage: response.data.currentPage,
+                modelTotalPage: response.data.totalPage,
+                modelTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -45,20 +60,15 @@ export const getModels = () => dispatch => {
 }
 
 /** CATEGORY */
-export const getCategories = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Categories + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+export const getCategories = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Categories + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_CATEGORY,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                categoryPayload: response.data.list,
+                categoryCurrentPage: response.data.currentPage,
+                categoryTotalPage: response.data.totalPage,
+                categoryTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -70,20 +80,15 @@ export const getCategories = () => dispatch => {
 }
 
 /** MANUFACTURER */
-export const getManufacturers = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Manufacturers + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+export const getManufacturers = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Manufacturers + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_MANUFACTURER,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                manufacturerPayload: response.data.list,
+                manufacturerCurrentPage: response.data.currentPage,
+                manufacturerTotalPage: response.data.totalPage,
+                manufacturerTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -95,20 +100,15 @@ export const getManufacturers = () => dispatch => {
 }
 
 /** PROCESSOR */
-export const getProcessors = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Processors + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+export const getProcessors = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Processors + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_PROCESSOR,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                processorPayload: response.data.list,
+                processorCurrentPage: response.data.currentPage,
+                processorTotalPage: response.data.totalPage,
+                processorTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -119,21 +119,16 @@ export const getProcessors = () => dispatch => {
         });
 }
 
-/** SUPPLIERs */
-export const getSuppliers = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Suppliers + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+/** SUPPLIERS */
+export const getSuppliers = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Suppliers + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_SUPPLIER,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                supplierPayload: response.data.list,
+                supplierCurrentPage: response.data.currentPage,
+                supplierTotalPage: response.data.totalPage,
+                supplierTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -145,20 +140,15 @@ export const getSuppliers = () => dispatch => {
 }
 
 /** DISK */
-export const getDisks = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Sizes.Harddisk + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+export const getDisks = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Sizes.Harddisk + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_DISK,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                diskPayload: response.data.list,
+                diskCurrentPage: response.data.currentPage,
+                diskTotalPage: response.data.totalPage,
+                diskTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -169,21 +159,16 @@ export const getDisks = () => dispatch => {
         });
 }
 
-/** Memory */
-export const getMemories = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Sizes.Memory + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+/** MEMORY */
+export const getMemories = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Sizes.Memory + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_MEMORY,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                memoryPayload: response.data.list,
+                memoryCurrentPage: response.data.currentPage,
+                memoryTotalPage: response.data.totalPage,
+                memoryTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -191,24 +176,19 @@ export const getMemories = () => dispatch => {
                 type: UNAUTHENTICATED,
                 payload: error.response.status
             })
-        });
+        })
 }
 
-/** VCard */
-export const getVCards = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Sizes.Videocard + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+/** VIDEOCARD */
+export const getVCards = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Sizes.Videocard + `?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_VCARD,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
+                vcardPayload: response.data.list,
+                vcardCurrentPage: response.data.currentPage,
+                vcardTotalPage: response.data.totalPage,
+                vcardTotal: response.data.total,
             })
         })
         .catch(function (error) {
@@ -220,16 +200,89 @@ export const getVCards = () => dispatch => {
 }
 
 /** STATUS TYPE */
-export const getStatus = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Status, {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
+export const getStatus = () => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Status, requestHeader)
         .then((response) => {
             dispatch({
                 type: GET_STATUS,
+                statusPayload: response.data
+            })
+        })
+        .catch(function (error) {
+            dispatch({
+                type: UNAUTHENTICATED,
+                payload: error.response.status
+            })
+        });
+}
+
+/** ASSET ORDER BY */
+export const getAssetsOrderBy = () => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.AssetsOrderBy, requestHeader)
+        .then((response) => {
+            dispatch({
+                type: GET_ASSET_ORDER_BY,
+                assetPayload: response.data
+            })
+        })
+        .catch(function (error) {
+            dispatch({
+                type: UNAUTHENTICATED,
+                payload: error.response.status
+            })
+        });
+}
+
+/** ASSET ORDER TYPE */
+export const getAssetsOrderType = () => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.AssetsOrderType, requestHeader)
+        .then((response) => {
+            dispatch({
+                type: GET_ASSET_ORDER_TYPE,
+                assetPayload: response.data
+            })
+        })
+        .catch(function (error) {
+            dispatch({
+                type: UNAUTHENTICATED,
+                payload: error.response.status
+            })
+        });
+}
+
+/** GET ALL ASSETS  */
+export const getAssets = (orderBy = '', orderType = '', keyword = '', currentPage = '1', showAll = false, callback = null) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.Assets + `?ShowAll=${showAll}&OrderBy=${orderBy}&OrderType=${orderType}&Keyword=${keyword}&CurrentPage=${currentPage}`, 
+    requestHeader)
+        .then((response) => {
+            dispatch({
+                type: GET_ASSET,
+                assetPayload: response.data.list,
+                assetCurrentPage: response.data.currentPage,
+                assetTotalPage: response.data.totalPage,
+                assetTotal: response.data.total,
+            })
+
+            if (response.status === 200) {
+                if (callback) {
+                    callback()
+                }
+            }
+        })
+        .catch(function (error) {
+            dispatch({
+                type: UNAUTHENTICATED,
+                payload: error.response.status
+            })
+        });
+}
+
+/** GET ASSET BY KEYWORD  */
+export const getAssetsByKeyword = () => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.AssetsOrderBy, requestHeader)
+        .then((response) => {
+            dispatch({
+                type: GET_ASSET_BY_KEYWORD,
                 payload: response.data
             })
         })
@@ -241,129 +294,127 @@ export const getStatus = () => dispatch => {
         });
 }
 
-/** MODEL */
-export const getAssets = () => dispatch => {
-    axios.get(setup.BASE_URL + setup.Assets + setup.ShowAll + 'true', {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    })
-        .then((response) => {
-            dispatch({
-                type: GET_ASSET,
-                payload: response.data.list,
-                currentPage: response.data.currentPage,
-                totalPage: response.data.totalPage,
-                total: response.data.total,
-            })
-        })
-        .catch(function (error) {
-            dispatch({
-                type: UNAUTHENTICATED,
-                payload: error.response.status
-            })
-        });
-}
-
-export const postAPI = (url, object) => async dispatch => {
-    return await axios.post(url, object, {
-        'header':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    }).then((response) => {
-        dispatch({
-            type: GET_ERROR,
-            payload: null
-        })
-    })
-    .catch(function (error) {
-        dispatch({
-            type: GET_ERROR,
-            payload: error.response.data
-        })
-    });
-}
-
-export const putAPI = (url, id, object) => async dispatch => {
-    return await axios.put(url + id, object, {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-    }).then((response) => {
-        dispatch({
-            type: GET_ERROR,
-            payload: null
-        })
-    })
-    .catch(function (error) {
-        dispatch({
-            type: GET_ERROR,
-            payload: error.response.data
-        })
-    });
-}
-
-export const postUser = (userName, password, callback = null) => async dispatch => {
-    await axios.post(setup.BASE_URL + setup.LoginUser + 'UserName=' + userName + '&Password=' + password)
-        .then((response) => {
-            dispatch({
-                type: AUTHENTICATED,
-            })
-            localStorage.setItem('user', response.data.token);
-            localStorage.setItem('id', response.data.id);
-            if(callback){
-               callback();
-            }
-        }).then((response) => {
-            dispatch({
-                type: GET_ERROR,
-                payload: null
-            })
-        })
-        .catch(function (error) {
-            dispatch({
-                type: GET_ERROR,
-                payload: error.response.status
-            })
-        });
-}
-
-export const getUser = (id) => async dispatch => {
-    await axios.get(setup.BASE_URL + setup.GetUser + id, {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-        }).then((response) => {
-            dispatch({
-                type: GET_USER,
-                payload: response.data.list,
-            })
-        }).catch(function (error) {
-            dispatch({
-                type: UNAUTHENTICATED,
-                payload: error.response.status
-            })
-        })
-}
-
-export const signOut = () => async dispatch => {
-    await localStorage.clear();
-}
-
+/**  GET ASSET BY ID */
 export const getAssetById = (id) => async dispatch => {
-    await axios.get(setup.BASE_URL + setup.Assets + '/' + id, {
-        'headers':{
-            "Authorization" : "Bearer " + localStorage.getItem('user'),
-            "Id" : localStorage.getItem('id')
-        }
-        }).then((response) => {
+    await axios.get(setup.BASE_URL + setup.Assets + `/${id}`, requestHeader)
+        .then((response) => {
             dispatch({
                 type: GET_ASSET_ID,
                 payload: response.data,
             })
+        }).catch(function (error) {
+            dispatch({
+                type: GET_ERROR,
+                payload: error.response.status
+            })
         })
+}
+
+/** LOGIN  */
+export const postUser = (userName, password, callback = null) => async dispatch => {
+    await axios.post(setup.BASE_URL + setup.LoginUser + `UserName=${userName}&Password=${password}`, requestHeader)
+        .then((response) => {
+            dispatch({
+                type: AUTHENTICATED,
+            })
+                localStorage.setItem('user', response.data.token);
+                localStorage.setItem('id', response.data.id);
+
+                if (callback){
+                callback();
+                }
+
+        })
+        .catch(function (error) {
+            dispatch({
+                type: GET_ERROR,
+                payload: error.response.status
+            })
+        });
+}
+
+/** GET ALL USERS  */
+export const getUsers = (currentPage = '1', showAll = false) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.GetUser + `/?ShowAll=${showAll}&CurrentPage=${currentPage}`, requestHeader)
+        .then((response) => {
+            dispatch({
+                type: GET_USER,
+                userPayload: response.data.list,
+                userCurrentPage: response.data.currentPage,
+                userTotalPage: response.data.totalPage,
+                userTotal: response.data.total,
+            })
+        })
+        .catch(function (error) {
+            dispatch({
+                type: UNAUTHENTICATED,
+                payload: error.response.status
+            })
+        });
+}
+
+/** GET USER BY ID  */
+export const getUserId = (id) => async dispatch => {
+    await axios.get(setup.BASE_URL + setup.GetUser + `/${id}`, requestHeader)
+        .then((response) => {
+            dispatch({
+                type: GET_USER_ID,
+                userIdPayload: response.data,
+            })
+        })
+        .catch(function (error) {
+            dispatch({
+                type: GET_ERROR,
+                payload: error.response.status
+            })
+        })
+}
+
+/** ADD  */
+export const postAPI = (url, object) => async dispatch => {
+    return await axios.post(url, object, requestHeader)
+    .then((response) => {
+        dispatch({
+            type: GET_ERROR,
+            payload: null
+        })
+    })
+    .catch(function (error) {
+        dispatch({
+            type: GET_ERROR,
+            payload: error.response.data
+        })
+    });
+}
+
+/** EDIT  */
+export const putAPI = (url, id, object) => async dispatch => {
+    return await axios.put(url + `/${id}`, object, requestHeader)
+    .then((response) => {
+        dispatch({
+            type: GET_ERROR,
+            payload: null
+        })
+    })
+    .catch(function (error) {
+        dispatch({
+            type: GET_ERROR,
+            payload: error.response.data
+        })
+    });
+}
+
+/** SIGN OUT  */
+export const signOut = (callback = null) => async dispatch => {
+    if (callback){
+        await callback();
+        await localStorage.clear();
+     }
+}
+
+export const clearError = () => dispatch => {
+    dispatch({
+        type: GET_ERROR,
+        payload: null
+    })
 }

@@ -3,12 +3,11 @@ import Error401 from '../../../../src/views/error/Error401';
 import { Code } from 'react-content-loader';
 import setup from '../../setup/api';
 import { connect } from 'react-redux';
+import { CommonPager } from '../../../views/common/pager';
 import { putAPI, getAssets, getCategories, getModels, getMemories, 
-    getDisks, getVCards, getManufacturers, getStatus, getSuppliers, getProcessors, getAssetById } from '../../../actions/assetAction';
-
-const requiredInput = {
-    color: 'red'
-}
+    getDisks, getVCards, getManufacturers, getStatus, getSuppliers, 
+    getProcessors, getAssetById, getAssetsOrderBy, getAssetsOrderType,
+    getAssetsByKeyword,clearError } from '../../../actions/assetAction';
 
 class EditAsset extends Component {
 
@@ -19,26 +18,56 @@ class EditAsset extends Component {
             isEditing: false,
             assetId: null,
             fields: {},
-            error:{},
+            errors:'',
             selectOpt: '',
-            isValidForm: true
+            isValidForm: true,
+            currentPage: '',
+            totalPage: '',
+            total: '',
+            orderBy:'',
+            orderType:'',
         }
+    }
+    
+    onPageChange = (page) => {
+        this.props.getAssets('','','', page, false)
+      }
+      
+    getAssetsOrderBy = (event) => {
+        event.preventDefault();
+        this.setState({orderBy: event.target.value})
+        this.props.getAssets(event.target.value, this.state.orderType, this.state.keyword);
+    }
+
+    getAssetsOrderType = (event) => {
+        event.preventDefault();
+        this.setState({orderType: event.target.value})
+        this.props.getAssets(this.state.orderBy, event.target.value, this.state.keyword);
+    }
+
+    getAssetsKeyword = (event) => {
+        event.preventDefault();
+        this.setState({keyword: event.target.value})
+        this.props.getAssets(this.state.orderBy, this.state.orderType, event.target.value);
     }
 
     componentWillMount() {
-        this.setState({isLoading:true})
-        this.props.getAssets();
-        this.props.getCategories();
-        this.props.getModels();
-        this.props.getMemories();
-        this.props.getDisks();
-        this.props.getVCards();
-        this.props.getManufacturers();
-        this.props.getStatus();
-        this.props.getSuppliers();
-        this.props.getProcessors();
-        this.setState({isLoading:false})
-        }
+        this.setState({isLoading: true})
+        this.props.clearError()
+        this.props.getAssetsOrderBy();
+        this.props.getAssetsOrderType();
+        this.props.getAssets('','','', 1, false)
+        this.props.getCategories(1, true);
+        this.props.getModels(1, true);
+        this.props.getMemories(1, true);
+        this.props.getDisks(1, true);
+        this.props.getVCards(1, true);
+        this.props.getManufacturers(1, true);
+        this.props.getStatus(1, true);
+        this.props.getSuppliers(1, true);
+        this.props.getProcessors(1, true);
+        this.setState({isLoading:false, orderBy: '0', orderType: '0', fields: this.props.assetId})
+    }
 
     parseDate = (date) => {
         if(!date){
@@ -56,22 +85,39 @@ class EditAsset extends Component {
 
     editSelectedAsset = (id) => {
         this.props.getAssetById(id)
-        this.setState({fields: this.props.assetId})
-        console.log(this.state.fields)
+        this.setState({fields: this.props.assetId, selectOpt: this.props.assetId.categoryId})
     }
 
     handleChange = (event) => {
         let fields = this.props.assetId;
         fields[event.target.name] = event.target.value;
 
-        if (!fields["name"] || !fields["assetTag"] || !fields["modelId"] || !fields["status"]){
-            this.setState({isValidForm: false})
+        if ((!fields["name"] || !fields["assetTag"] || !fields["modelId"] || !fields["status"]) ||
+            (fields["name"].length > 20) || fields["assetTag"].length > 20){
+            this.setState({isValidForm: false, errors: `Input for ${event.target.name} length exceeded`})
         }
         else{
-            this.setState({isValidForm: true})
+            this.setState({isValidForm: true, errors: ''})
         }
 
-        this.setState({fields: fields})
+        this.setState({fields: fields, selectOpt: event.target.value})
+    }
+
+    validateLength(length, event) {
+        let errors = {};
+
+        if (!event.target.value) {
+            this.setState({errors:''})
+             return; 
+        }
+
+        if (event.target.value.length > length) {
+            errors.invalidLength = `Input for ${event.target.name} length exceeded`
+        }
+
+        this.setState({
+            errors: errors
+        })
     }
 
     backButton = () => {
@@ -82,31 +128,29 @@ class EditAsset extends Component {
         event.preventDefault();
 
         if (this.state.isValidForm) {
+            let newAsset = {
+                id: id,
+            ...this.props.assetId
+            }
+
+            this.props.putAPI(setup.BASE_URL + setup.Assets, id, newAsset)
+            .then(() => {
+                this.props.getAssets();
+            })
+            .catch(error => console.log(error));
             
-        let newAsset = {
-            id: id,
-           ...this.state.fields
-        }
-
-        this.props.putAPI(setup.BASE_URL + setup.Assets + setup.Id, id, newAsset)
-        .then(() => {
-            this.props.getAssets();
-          })
-        .catch(error => console.log(error));
-
-        //window.location.reload(true);
+             window.location.reload(true);
         }
     }
 
   render() {
-    console.log(this.props.assetId)
-    if (!this.props.unauthenticated === 401) {
-        const { isLoading } = this.props;
-        if (isLoading) {
-         return <Code/>;
-        }
-      }
-    
+    var isAuth = localStorage.getItem('user');
+
+    const { isLoading } = this.props;
+    if (isLoading) {
+     return <Code/>;
+    }
+
     var assetList = this.props.assets.map(function(props, index){
         return(
         <tr key={'asset_'+index}>
@@ -146,10 +190,10 @@ class EditAsset extends Component {
     var detailForm = (
         <div className="col-lg-12">
             <div className="form-group">
-                <label>{setup.FieldName.AssetTag}<span style={requiredInput}> *</span></label>
+                <label>{setup.FieldName.AssetTag}<span style={setup.requiredInput}> *</span></label>
                 <input className="form-control" type="text" name="assetTag" 
                 onChange={this.handleChange} defaultValue={this.props.assetId.assetTag}
-                onInput={this.handleChange}/>
+                onInput={this.handleChange} maxLength="20"/>
             </div>
             <div className="form-group">
                 <label>{setup.FieldName.Category}</label>
@@ -171,7 +215,7 @@ class EditAsset extends Component {
                  </select>}
             </div>
             <div className="form-group">
-                <label>{setup.FieldName.Status}<span style={requiredInput}> *</span></label>
+                <label>{setup.FieldName.Status}<span style={setup.requiredInput}> *</span></label>
                 {(this.props.assetId.status) &&
                 <select className="form-control" onChange={this.handleChange} name="status" defaultValue={this.props.assetId.status}>
                     <option></option>
@@ -190,26 +234,26 @@ class EditAsset extends Component {
                 </select>}
             </div>
             <div className="form-group">
-                <label>{setup.FieldName.HostName}<span style={requiredInput}> *</span></label>
-                <input className="form-control" type="text" name="name" 
+                <label>{setup.FieldName.HostName}<span style={setup.requiredInput}> *</span></label>
+                <input className="form-control" type="text" name="name"
                 onChange={this.handleChange} defaultValue={this.props.assetId.name}
-                onInput={this.handleChange}/>
+                onInput={this.handleChange} maxLength="20"/>
             </div>
             <div className="form-group">
                 <label>{setup.FieldName.AssignedTo}</label>
-                <input className="form-control" type="text" name="assignedTo" onChange={this.handleChange} defaultValue={this.props.assetId.assignedTo}/>
+                <input className="form-control" type="text" name="assignedTo" onChange={this.handleChange} defaultValue={this.props.assetId.assignedTo} maxLength="50" onInput={this.validateLength.bind(this, 50)}/>
             </div>
             <div className="form-group">
                 <label>{setup.FieldName.IP}</label>
-                <input className="form-control" type="text" name="ipAddress" onChange={this.handleChange} defaultValue={this.props.assetId.ipAddress}/>
+                <input className="form-control" type="text" name="ipAddress" onChange={this.handleChange} defaultValue={this.props.assetId.ipAddress} maxLength="20" onInput={this.validateLength.bind(this, 20)}/>
             </div>
             <div className="form-group">
                 <label>{setup.FieldName.Notes}</label>
-                <input className="form-control" type="text" name="notes" onChange={this.handleChange} defaultValue={this.props.assetId.notes}/>
+                <input className="form-control" type="text" name="notes" onChange={this.handleChange} defaultValue={this.props.assetId.notes} maxLength="50" onInput={this.validateLength.bind(this, 50)}/>
             </div>
             <div className="form-group">
-                <label>Warranty</label>
-                <input className="form-control" type="text" name="warranty" onChange={this.handleChange} defaultValue={this.props.assetId.warranty}/>
+                <label>{setup.FieldName.Warranty}</label>
+                <input className="form-control" type="text" name="warranty" onChange={this.handleChange} defaultValue={this.props.assetId.warranty} maxLength="50" onInput={this.validateLength.bind(this, 50)}/>
             </div>
         </div>
         );
@@ -218,15 +262,15 @@ class EditAsset extends Component {
         <div className="col-lg-12">
         <div className="form-group">
             <label>{setup.FieldName.PO}</label>
-            <input className="form-control"type="text" name="poNo" onChange={this.handleChange} defaultValue={this.props.assetId.poNo}/>
+            <input className="form-control"type="text" name="poNo" onChange={this.handleChange} defaultValue={this.props.assetId.poNo} maxLength="15" onInput={this.validateLength.bind(this, 15)}/>
         </div>
         <div className="form-group">
             <label>{setup.FieldName.Receipt}</label>
-            <input className="form-control" type="text" name="drNo" onChange={this.handleChange} defaultValue={this.props.assetId.drNo}/>
+            <input className="form-control" type="text" name="drNo" onChange={this.handleChange} defaultValue={this.props.assetId.drNo} maxLength="15" onInput={this.validateLength.bind(this, 15)}/>
         </div>
         <div className="form-group">
             <label>{setup.FieldName.Invoice}</label>
-            <input className="form-control" type="text" name="siNo" onChange={this.handleChange} defaultValue={this.props.assetId.siNo}/>
+            <input className="form-control" type="text" name="siNo" onChange={this.handleChange} defaultValue={this.props.assetId.siNo} maxLength="15" onInput={this.validateLength.bind(this, 15)}/>
         </div>
         <div className="form-group">
             <label>{setup.FieldName.DDate}</label>
@@ -241,13 +285,12 @@ class EditAsset extends Component {
             <input className="form-control" type="number" name="purchaseCost" onChange={this.handleChange} defaultValue={this.props.assetId.purchaseCost}/>
         </div>
         <div className="form-group">
-            <label>Purchase Date</label>
+            <label>{setup.FieldName.PDate}</label>
             <input className="form-control" 
                     type="date" name="purchaseDate" 
                     onChange={this.handleChange}
                     defaultValue={this.parseDate(this.props.assetId.purchaseDate)}
                     />
-            
         </div>
         <div className="form-group">
             <label>{setup.FieldName.Supplier}</label>
@@ -274,12 +317,12 @@ class EditAsset extends Component {
     return (
         <div id="page-wrapper">
         { this.state.isEditing ? null : 
-                this.props.unauthenticated === 401 ? 
+                this.props.unauthenticated === 401 || !isAuth ? 
                 <Error401/> :
                     <div>
                         <div className="row">
                             <div className="col-lg-12">
-                                <h1 className="page-header">Edit Asset</h1>
+                                <h1 className="page-header">Asset</h1>
                             </div>
                         </div>
                         <div className="row">
@@ -288,6 +331,26 @@ class EditAsset extends Component {
                                     <div className="panel-heading">
                                         <p> List of Asset </p>
                                     </div>
+                                    <div className="panel-body">
+                                            <input type= "text" placeholder="Keyword" name="Keyword"
+                                                className="btn btn-default col-xs-4 .col-sm-4" onChange={this.getAssetsKeyword} onInput={this.getAssetsKeyword}/>
+
+                                            <select className="btn btn-default col-xs-4 .col-sm-4" onChange={this.getAssetsOrderBy} name="OrderBy">
+                                                <option value="0">Order by </option>
+                                                {
+                                                    this.props.assetsOrderBy.map((props, index) =>
+                                                    <option key={'status_list_'+index} value={props.value}>{props.name}</option>)
+                                                }
+                                            </select>
+                                            {this.state.orderBy !== '0' && 
+                                            <select className="btn btn-default col-xs-4 .col-sm-4" onChange={this.getAssetsOrderType} name="OrderType">
+                                                <option value="0">Order by Type</option>
+                                                {
+                                                    this.props.assetsOrderType.map((props, index) =>
+                                                    <option key={'status_list_'+index} value={props.value}>{props.name}</option>)
+                                                }
+                                            </select>}
+                                        </div>
                                     <div className="panel-body">
                                         <div className="table-responsive">
                                         <table className="table table-striped table-hover table-borderless">
@@ -327,6 +390,9 @@ class EditAsset extends Component {
                                         </table>
                                         </div>
                                     </div>
+                                    
+                                    {(this.props.totalPage && this.props.currentPage) 
+                                            && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
                                 </div>
                             </div>
                         </div>
@@ -336,7 +402,7 @@ class EditAsset extends Component {
             <div>
                 <div className="row">
                     <div className="col-lg-12">
-                        <h1 className="page-header">Edit Asset</h1>
+                        <h1 className="page-header">Edit Asset ID <a>{this.props.assetId && this.props.assetId.id}</a></h1>
                     </div>
                 </div>
                     <div className="row">
@@ -345,7 +411,8 @@ class EditAsset extends Component {
                                 <div className="panel-body">
                                     <div className="row">
                                     <div className="col-lg-12">
-                                        <p style={requiredInput}>{this.props.error ? this.props.error.errorMessages : null}</p>
+                                        <p style={setup.requiredInput}>{this.props.error ? this.props.error.errorMessages : null}</p>
+                                        <p style={setup.requiredInput}>{this.state.errors ? this.state.errors.invalidLength : null}</p>
                                     </div>
                                             <div className="col-lg-12">
                                                     <div className="panel panel-success">
@@ -356,10 +423,10 @@ class EditAsset extends Component {
                                                             <div className="col-lg-6">
                                                                 <div className="form-group">
                                                                     <label>{setup.FieldName.SN}</label>
-                                                                    <input className="form-control" type="text" name="serialNo" onChange={this.handleChange} defaultValue={this.props.assetId.serialNo}/>
+                                                                    <input className="form-control" type="text" name="serialNo" onChange={this.handleChange} defaultValue={this.props.assetId.serialNo} maxLength="20"  onInput={this.validateLength.bind(this, 15)}/>
                                                                 </div>
                                                                 <div className="form-group">
-                                                                    <label>{setup.FieldName.Model}<span style={requiredInput}> *</span></label>
+                                                                    <label>{setup.FieldName.Model}<span style={setup.requiredInput}> *</span></label>
                                                                     {(this.props.assetId.modelId) && 
                                                                     <select className="form-control" name="modelId" defaultValue={this.props.assetId.modelId} onChange={this.handleChange}>
                                                                     <option></option>
@@ -396,19 +463,19 @@ class EditAsset extends Component {
                                                                         }
                                                                     </select> }
                                                                 </div>
-                                                                {this.state.selectOpt != 4 ? 
+                                                                {this.state.selectOpt === '3'|| this.props.assetId.categoryId === 3 || this.state.selectOpt === '0' ? 
                                                                 <div>
                                                                 <div className="form-group">
                                                                     <label>{setup.FieldName.BatterySN}</label>
-                                                                    <input className="form-control" type="text" name="battery" onChange={this.handleChange} defaultValue={this.props.assetId.battery}/>
+                                                                    <input className="form-control" type="text" name="battery" onChange={this.handleChange} defaultValue={this.props.assetId.battery} maxLength="20"  onInput={this.validateLength.bind(this, 15)}/>
                                                                 </div>
                                                                 <div className="form-group">
                                                                     <label>{setup.FieldName.AdapterSN}</label>
-                                                                    <input className="form-control" type="text" name="adapter" onChange={this.handleChange} defaultValue={this.props.assetId.adapter}/>
+                                                                    <input className="form-control" type="text" name="adapter" onChange={this.handleChange} defaultValue={this.props.assetId.adapter} maxLength="20"  onInput={this.validateLength.bind(this, 15)}/>
                                                                 </div>
-                                                                </div> : null}
+                                                                </div> : null }
                                                             </div>
-                                                            {this.state.selectOpt != 4 ? 
+                                                            {this.state.selectOpt === '3' || this.props.assetId.categoryId === 3 || this.state.selectOpt === '0' ? 
                                                                 <div className="row">
                                                                 <div className="col-lg-6">
                                                                     <div className="form-group">
@@ -418,7 +485,7 @@ class EditAsset extends Component {
                                                                         <option></option>
                                                                         {
                                                                             this.props.disks.map((props, index) =>
-                                                                            <option key={'disk_'+index} value={props.id}>{props.size}</option>)
+                                                                            <option key={'disk_'+index} value={props.id}>{props.size} {setup.FieldName.GBUnit}</option>)
                                                                         }
                                                                         </select>}
                                                                         {(!this.props.assetId.hardDiskId) &&
@@ -426,7 +493,7 @@ class EditAsset extends Component {
                                                                         <option></option>
                                                                         {
                                                                             this.props.disks.map((props, index) =>
-                                                                            <option key={'disk_'+index} value={props.id}>{props.size}</option>)
+                                                                            <option key={'disk_'+index} value={props.id}>{props.size} {setup.FieldName.GBUnit}</option>)
                                                                         }
                                                                         </select>}
                                                                     </div>
@@ -437,7 +504,7 @@ class EditAsset extends Component {
                                                                         <option></option>
                                                                         {
                                                                             this.props.vcards.map((props,index) =>
-                                                                            <option key={'vcard_'+index} value={props.id}>{props.size}</option>)
+                                                                            <option key={'vcard_'+index} value={props.id}>{props.size} {setup.FieldName.GBUnit}</option>)
                                                                         }
                                                                         </select>}
                                                                         {(!this.props.assetId.videoCardId) &&
@@ -445,7 +512,7 @@ class EditAsset extends Component {
                                                                         <option></option>
                                                                         {
                                                                             this.props.vcards.map((props,index) =>
-                                                                            <option key={'vcard_'+index} value={props.id}>{props.size}</option>)
+                                                                            <option key={'vcard_'+index} value={props.id}>{props.size} GB</option>)
                                                                         }
                                                                         </select>}
                                                                     </div>
@@ -471,7 +538,7 @@ class EditAsset extends Component {
                                                                     <div>
                                                                         <div className="form-group">
                                                                             <label>{setup.FieldName.MAC}</label>
-                                                                            <input className="form-control" type="text" name="macAddress" onChange={this.handleChange} defaultValue={this.props.assetId.macAddress}/>
+                                                                            <input className="form-control" type="text" name="macAddress" onChange={this.handleChange} defaultValue={this.props.assetId.macAddress} maxLength="20"/>
                                                                         </div>
                                                                         <div className="form-group">
                                                                             <label>{setup.FieldName.RAM}</label>
@@ -480,7 +547,7 @@ class EditAsset extends Component {
                                                                             <option></option>
                                                                             {
                                                                                 this.props.memory.map((props, index) =>
-                                                                                <option key={'memory_'+index} value={props.id}>{props.size}</option>)
+                                                                                <option key={'memory_'+index} value={props.id}>{props.size} {setup.FieldName.GBUnit}</option>)
                                                                             }
                                                                             </select> }
                                                                             {(!this.props.assetId.memoryId) &&
@@ -488,13 +555,13 @@ class EditAsset extends Component {
                                                                             <option></option>
                                                                             {
                                                                                 this.props.memory.map((props, index) =>
-                                                                                <option key={'memory_'+index} value={props.id}>{props.size}</option>)
+                                                                                <option key={'memory_'+index} value={props.id}>{props.size} {setup.FieldName.GBUnit}</option>)
                                                                             }
                                                                             </select>}
                                                                         </div>
                                                                     </div> 
                                                                 </div>
-                                                            </div> : null}
+                                                            </div>: null}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -562,11 +629,19 @@ const mapStateToProps = state => ({
     memory: state.memory.memoryList,
     vcards: state.vcards.vcardList,
     status: state.status.statusList,
-    isLoading: state.models.isLoading,
+    isLoading: state.assets.isLoading,
     unauthenticated: state.unauthenticated.unauthenticatedError,
     assetId: state.assetId.asset,
     error: state.error.error,
+    currentPage: state.assets.assetCurrentPage,
+    totalPage: state.assets.assetTotalPage,
+    total: state.assets.assetTotal,
+    assetsOrderBy: state.assetsOrderBy.assetsOrderBy,
+    assetsOrderType: state.assetsOrderType.assetsOrderType,
+    assetsKeyword: state.assetsKeyword.assetsKeyword,
+    page: state.page.page,
   })
   
   export default connect(mapStateToProps, { getCategories, getModels, putAPI, getAssets,
-    getMemories, getDisks, getVCards, getManufacturers, getStatus, getSuppliers, getProcessors, getAssetById })(EditAsset);
+    getMemories, getDisks, getVCards, getManufacturers, getStatus, getSuppliers, 
+    getProcessors, getAssetById, getAssetsOrderBy, getAssetsOrderType, getAssetsByKeyword,clearError })(EditAsset);

@@ -1,18 +1,21 @@
-import React, { Component } from 'react';
-import Pager from 'react-pager';
+// http://react-component.github.io/pagination/examples/styles.html
+import React from 'react';
+import Pagination from 'rc-pagination';
+import 'rc-pagination/assets/index.css';
 
-export default class commonPager extends Component {
-    
-    pager(total, currentPage, handlePageChanged) {
-        return (
-            <Pager
-            total={total}
-            current={currentPage}
-            visiblePage={currentPage}
-            titles={{ first: '<|', last: '>|' }}
-            className="pagination-sm pull-right"
-            onPageChanged={handlePageChanged}
-            />
-        )
-      };
+const center = {
+    width: 'inherit',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: '20px',
+    marginBottom: '10px',
 }
+
+export function CommonPager(total,currentPage, onChange) {
+    return (
+        <div style={center} >
+            <Pagination current={currentPage} total={total} onChange={onChange} pageSize={4} />
+        </div>
+    )
+};
