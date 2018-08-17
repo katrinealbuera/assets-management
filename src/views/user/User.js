@@ -1,12 +1,13 @@
 import React, { Component } from "react";
-import { Code } from 'react-content-loader';
-import setup from '../../js/setup/api';
-import CreateUser from '../../js/actions/user/CreateUser';
+import setup from '../../actions/setup/api';
+import CreateUser from '../user/CreateUser';
+import Error401 from '../../views/error/Error401';
+import ErrorNetwork from '../../views/error/ErrorNetwork';
+import Loader from '../common/Loader';
 import { connect } from 'react-redux';
 import { getUserId, getUsers, putAPI } from '../../actions/assetAction';
-import Error401 from '../../views/error/Error401';
-import { CommonPager } from '../common/pager';
-import { Textbox } from 'react-inputs-validation';
+import { CommonRegisterForm, CommonRegisterFormHeader, 
+    CommonOnInputText, CommonSubmitBtn, CommonSuccessMessage } from '../common/component';
 
 class User extends Component {
 
@@ -15,28 +16,41 @@ class User extends Component {
 
     this.state = {
       isEditing: false,
+      isSaved: false,
+      isValidForm: true,
       userId: null,
       errors: {},
-      currentPage: '',
+      currentPage: '1',
       totalPage: '',
       total: '',
       fields: {},
-      isValidForm: true,
       password: '',
+      errorMessage: '',
+      isAuth: '',
     }
   }
 
-  onPageChange = (page) => {
-    this.props.getUsers(page, false)
-  }
+    onPageChange = (page) => {
+        this.setState({currentPage: page})
+        this.props.getUsers(page, false)
+    }
 
-  componentWillMount() {
-        this.setState({isLoading:true})
+    componentWillMount() {
+        this.setState({isAuth: localStorage.getItem('user')})
         this.props.getUsers()
-        this.setState({isLoading:false})
-  }
+        this.setLoading()
+    }
+  
+    setLoading() {
+        this.setState({isLoading: true})
+        setTimeout(() => {
+        this.setState({
+            isLoading: false
+        })
+        }, 2000)
+    }  
 
-  getSelectedId = function(index, event) {
+    getSelectedId = function(index, event) {
         event.preventDefault();
 
         this.setState({isEditing: true, userId: index})
@@ -75,10 +89,17 @@ class User extends Component {
             }
 
             this.props.putAPI(setup.BASE_URL + setup.GetUser, id, newUser)
-            .then(() => {this.props.getUsers()})
-            .catch(error => console.log(error))
+            .then(() => {
+                this.props.getUsers(this.state.currentPage)
+                this.showSuccessMessage()
+                this.setState({fullName: '', userName: '', errorMessage: ''})
+            })
+            .catch(error => {
+                this.setState({fullName: this.state.fullName, userName: this.state.userName,
+                     errorMessage: error.response.data.errorMessages, isEditing: true})
+            })
         }
-        this.setState({isEditing: false, password: ''})
+        this.setState({isEditing: false, password: '' })
     }
 
     handleClose = (event) => {
@@ -87,16 +108,19 @@ class User extends Component {
         this.props.getUsers()
     }
 
+    showSuccessMessage = () => {
+        this.setState({isSaved: true})
+    
+        setTimeout(() => {
+            this.setState({
+                isSaved: false
+            })
+        }, 2000)
+      }
+
   render() 
   {
-    var isAuth = localStorage.getItem('user');
-
-    if (!this.props.unauthenticated === 401) {
-      const { isLoading } = this.props;
-      if (isLoading) {
-       return <Code/>;
-      }
-    }
+    const { isAuth } = this.state;
 
     var userList = this.props.users.map(function(props, index) {
       return(
@@ -104,7 +128,7 @@ class User extends Component {
           <td className="col-lg-1">{props.id}</td>
           <td className="col-lg-3">{props.fullName}</td>
           <td className="col-lg-3">{props.userName}</td>
-          <td className="col-lg-2"><input type="submit" className="btn btn-success" 
+          <td className="col-lg-2"><input type="submit" className="btn btn-info" 
             value="Edit" onClick={this.getSelectedId.bind(this, props.id)}/></td>
         </tr>
       );}, this);
@@ -112,79 +136,34 @@ class User extends Component {
     var editList =
        (
         <div>
-            <div className="form-group input-group">
-                <span className="input-group-addon" role="img" aria-label="Name">Full Name</span>
-                <input tye="text" className="form-control" name="fullName"
-                    defaultValue={this.props.userId.fullName} onChange={this.handleChange} onInput={this.handleChange}/>
-            </div>
-
-            <div className="form-group input-group">
-                <span className="input-group-addon" role="img" aria-label="UserName">UserName</span>
-                <input tye="text" className="form-control" name="userName"
-                    defaultValue={this.props.userId.userName}  onChange={this.handleChange} onInput={this.handleChange}/>
-            </div>
-
-            <div className="form-group input-group">
-                <span className="input-group-addon" role="img" aria-label="Password">Password</span>
-                <Textbox
-                    tabIndex="1" id={'password'} name="password"
-                    type="password" value={this.state.password} placeholder="Password"
-                    onChange={(password, e) => {
-                        this.setState({ password })
-                    }}/>
-            </div>
+             { CommonOnInputText('Full Name', 'text', 'fullName', this.handleChange,this.handleChange, null, true, this.props.userId.fullName) }
+             { CommonOnInputText('UserName', 'text', 'userName', this.handleChange,this.handleChange, null, true, this.props.userId.userName) }
+             { CommonOnInputText('Password', 'password', 'password', this.handleChange,this.handleChange, null, true, this.props.userId.password) }
             
             <div className="form-group input-group">
-                <input type="button" style={setup.styleCloseBtn} className={this.state.isValidForm ?
-                 'btn btn-success' : 'btn btn-success disabled'}
-                    value="Update" onClick={this.updateUser.bind(this, this.props.userId.id)}/>
-
-                <input type="button" className="btn btn-info" style={setup.styleCloseBtn}
-                    value="Close" onClick={this.handleClose}/>
+                    { CommonSubmitBtn(this.state.isValidForm ?'btn btn-success' : 'btn btn-success disabled', 
+                            'Update', this.updateUser.bind(this, this.props.userId.id)) }
+                    { CommonSubmitBtn('btn btn-info', 'Close', this.handleClose) }
             </div>
         </div>
         );
     
     return (
+    this.props.networkError ? <ErrorNetwork/> : (this.props.unauthenticated === 401 || !isAuth) ? <Error401/> :
+    this.state.isLoading ? <Loader/> :
       <div id="page-wrapper">
-        {this.props.unauthenticated === 401 || !isAuth ? 
-        <Error401/> :
         <div>
-          <div className="row">
-          <div className="col-lg-12">
-              <h1 className="page-header">User</h1>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-lg-6">
-            <div className="panel panel-info">
-              <div className="panel-heading">
-                <p> List of User </p>
-              </div>
-                <div className="panel-body">
-                    <div className="table-responsive table-bordered">
-                      <form>
-                      <table className="table table-striped table-hover table-borderless">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Full Name</th>
-                                    <th>Username</th>
-                                    <th>Edit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                              { userList }
-                            </tbody>
-                        </table>
-                        {(this.props.totalPage && this.props.currentPage) 
-                          && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
-                      </form>
-                    </div>
+            <div className="row">
+                <div className="col-lg-12">
+                    <h1 className="page-header">User</h1>
+                        { CommonRegisterFormHeader(this.state.errorMessage) }
+                        { this.state.isSaved && CommonSuccessMessage('updated') }
                 </div>
             </div>
-        </div>
-            {!this.state.isEditing ? <CreateUser getUser={this.getUser}/> : 
+            <div className="row">
+                { CommonRegisterForm('User', this.props.totalPage, this.props.currentPage, this.props.total,
+                        this.onPageChange, userList, true) }
+                {!this.state.isEditing ? <CreateUser getUser={this.getUser}/> : 
                 <div className="col-lg-6">
                     <div className="panel panel-success">
                         <div className="panel-heading">
@@ -198,7 +177,7 @@ class User extends Component {
                             </div>
                         </div>
                     </div>
-                </div>}
+                </div> }
             </div>
          </div>
         }
@@ -211,11 +190,13 @@ const mapStateToProps = state => ({
 users: state.users.userList,
 userId: state.userId.user,
 isLoading: state.models.isLoading,
-unauthenticated: state.unauthenticated.unauthenticatedError,
-currentPage: state.models.userCurrentPage,
-totalPage: state.models.userTotalPage,
-total: state.models.userTotal,
+currentPage: state.users.userCurrentPage,
+totalPage: state.users.userTotalPage,
+total: state.users.userTotal,
 page: state.page.page,
+userIsSuccess: state.users.userIsSuccess,
+unauthenticated: state.unauthenticated.unauthenticatedError,
+networkError: state.networkError.networkError,
 })
 
 export default connect(mapStateToProps, { getUsers, getUserId, putAPI })(User);

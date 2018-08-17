@@ -4,23 +4,35 @@ import { Provider } from 'react-redux';
 import store from './Store';
 import Sidebar from './views/Sidebar';
 import Index from './views/Index';
-import CreateAsset from '../src/js/actions/asset/CreateAsset';
-import EditAsset from '../src/js/actions/asset/EditAsset';
-import Error from './views/error/Error';
+import CreateAsset from './views/asset/CreateAsset';
+import EditAsset from './views/asset/EditAsset';
+import Error404 from './views/error/Error404';
 import Model from './views/model/Model';
 import Processor from './views/processor/Processor';
 import Supplier from './views/supplier/Supplier';
 import Category from './views/categories/Categories';
 import Manufacturer from './views/manufacturer/Manufacturer';
-import Sizes from './views/sizes/Sizes';
 import Login from './views/login/Login';
 import User from './views/user/User'
+import Sizes from './views/sizes/Sizes';
 
 class App extends Component {
 
+  constructor(){
+    super();
+
+    this.state = {
+      isAuth: '',
+    }
+  }
+  
+  componentWillMount() {
+    this.setState({isAuth: localStorage.getItem('user')})
+  }
+
   render() {
 
-    var isAuth = localStorage.getItem('user');
+    const { isAuth } = this.state;
 
     return (
       <Provider store={store}>
@@ -39,8 +51,8 @@ class App extends Component {
                   <Route exact path="/category" component={Category} />
                   <Route exact path="/manufacturer" component={Manufacturer} />
                   <Route exact path="/sizes" component={Sizes} />
-                  <Route exact path="/new_user" component={User} />
-                  <Route component={Error} />
+                  <Route exact path="/user" component={User} />
+                  <Route component={Error404} />
                 </Switch>
               </div>
             </BrowserRouter>

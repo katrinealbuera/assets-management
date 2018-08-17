@@ -22,5 +22,5 @@ export default combineReducers({
     success: assetReducer,
     assetsKeyword: assetReducer,
     page: assetReducer,
-    memoryError: assetReducer,
+    networkError: assetReducer,
 });

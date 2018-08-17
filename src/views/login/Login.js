@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import ErrorNetwork from '../../views/error/ErrorNetwork';
 import { connect } from 'react-redux';
 import { postUser } from '../../actions/assetAction';
 import { Textbox } from 'react-inputs-validation';
-import setup from '../../js/setup/api';
+import { CommonRegisterFormHeader } from '../common/component';
 
 class Login extends Component {
 
@@ -47,7 +48,7 @@ render() {
 var loginForm = (
 <form onSubmit={this.handleSubmit}>
     <fieldset>
-        <p style={setup.requiredInput}>{this.props.error === 401 ? 'Invalid Credentials' : null}</p>
+        {this.props.unauthenticated === 401 && CommonRegisterFormHeader('Invalid Credentials') }
         <div className="form-group input-group">
             <span className="input-group-addon" role="img" aria-label="Email"><p className="fa fa-user"></p></span>
             <Textbox
@@ -96,6 +97,7 @@ var loginForm = (
     );
 
     return (
+    this.props.networkError ? <ErrorNetwork/> :
     <div className="container">
         <div className="row">
             <div className="col-md-6 col-md-offset-3">
@@ -124,6 +126,8 @@ Login.contextTypes = {
 
 const mapStateToProps = state => ({
     error: state.error.error,
+    unauthenticated: state.unauthenticated.unauthenticatedError,
+    networkError: state.networkError.networkError,
   })
   
 export default connect(mapStateToProps, { postUser })(Login);

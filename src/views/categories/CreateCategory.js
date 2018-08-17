@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import setup from '../../setup/api';
+import setup from '../../actions/setup/api';
 import { connect } from 'react-redux';
-import { postAPI, getCategories } from '../../../actions/assetAction';
+import { postAPI, getCategories } from '../../actions/assetAction';
 import { Textbox } from 'react-inputs-validation';
+import { CommonSuccessMessage } from '../common/component';
 
 class CreateCategory extends Component {
 
@@ -13,7 +14,13 @@ class CreateCategory extends Component {
             name: '',
             hasError: false,
             isValidForm: false,
+            isSaved: false,
+            errorMessage:'',
         }
+    }
+
+    resetForm = () => {
+        this.setState({name: ''})
     }
 
     handleSubmit = (event) => {
@@ -26,22 +33,38 @@ class CreateCategory extends Component {
         if (this.state.isValidForm){
             this.props.postAPI(setup.BASE_URL + setup.Categories, newName)
             .then(() => {
-                this.props.getCategories();
-            }).catch(error => console.log(error))
+                this.props.getCategories(this.props.totalPage);
+                this.showSuccessMessage();
+                this.setState({name: '', errorMessage: ''});
+            })
+            .catch(error => {
+                this.setState({name: this.state.name, errorMessage: error.response.data.errorMessages});
+            });
         }
-        this.setState({name: ''});
     }
+
+    showSuccessMessage = () => {
+        this.setState({isSaved: true})
+    
+        setTimeout(() => {
+            this.setState({
+                isSaved: false
+            })
+        }, 2000)
+      }
 
   render() {
     
     return (
         <div className="col-lg-6">
-        <div className="panel panel-success">
+         {this.state.errorMessage ? <p className="alert alert-danger">{this.state.errorMessage}</p>: null }
+        <div className="panel panel-green">
             <div className="panel-heading">
                 <p> Add New Category </p>
             </div>
             <div className="panel-body">
                 <div className="row">
+                    { this.state.isSaved && CommonSuccessMessage('saved') }
                     <div className="col-lg-12">
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
@@ -77,5 +100,8 @@ class CreateCategory extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+    totalPage: state.categories.categoryTotalPage,
+  })
 
-export default connect(null, { postAPI, getCategories })(CreateCategory);
+export default connect(mapStateToProps, { postAPI, getCategories })(CreateCategory);

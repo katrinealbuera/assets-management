@@ -1,13 +1,3 @@
-const base_url = 'http://localhost:61333/api';
-const content_type = 'application/json';
-const ShowAll = '?ShowAll=';
-const Keyword = 'Keyword=';
-const OrderBy = 'OrderBy=';
-const OrderType = 'OrderType=';
-const CurrentPage = 'CurrentPage=';
-const AssetsOrderBy = '/assets_orderby';
-const AssetsOrderType = '/assets_ordertype';
-
 class FieldName {
     Specs = 'Specification';
     Details = 'Details';
@@ -59,35 +49,5 @@ class FieldName {
 }
 
 export default {
-    BASE_URL : base_url,
-    CONTENT_TYPE : content_type,
-    OrderBy : OrderBy,
-    OrderType : OrderType,
-    CurrentPage : CurrentPage,
-    ShowAll: ShowAll,
-    Keyword : Keyword,
-    Assets : '/Assets',
-    Models: '/Models',
-    Categories : '/Categories',
-    Manufacturers : '/Manufacturers',
-    Processors : '/Processors',
-    Sizes : {
-        Harddisk : '/sizes/harddisk',
-        Memory : '/sizes/memory',
-        Videocard : '/sizes/videocard',
-    },
-    Suppliers : '/Suppliers',
-    Status : '/statustypes',
-    LoginUser : '/Users/authenticate?',
-    GetUser: '/Users',
     FieldName: new FieldName(),
-    AssetsOrderBy: AssetsOrderBy,
-    AssetsOrderType: AssetsOrderType,
-    requiredInput: {
-        color: 'red'
-        },
-    styleCloseBtn: {
-        marginLeft : '10px',
-        width: '100px'
-        },
 }

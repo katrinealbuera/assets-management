@@ -1,12 +1,13 @@
 import React, { Component } from "react";
-import setup from '../../js/setup/api';
-import { Code } from 'react-content-loader';
-import CreateManufacturer from '../../js/actions/manufacturer/CreateManufacturer';
+import setup from '../../actions/setup/api';
+import Error401 from '../../views/error/Error401';
+import ErrorNetwork from '../../views/error/ErrorNetwork';
+import CreateManufacturer from '../manufacturer/CreateManufacturer';
+import Loader from '../common/Loader';
 import { connect } from 'react-redux';
 import { getManufacturers, putAPI, clearError } from '../../actions/assetAction';
-import { validateName } from '../../js/validation/validateInput';
-import Error401 from '../../views/error/Error401';
-import { CommonPager } from '../common/pager';
+import { validateName } from '../../actions/validation/validateInput';
+import { CommonRegisterForm, CommonRegisterFormHeader, CommonSuccessMessage } from '../common/component';
 
 class Manufacturer extends Component {
 
@@ -15,23 +16,36 @@ class Manufacturer extends Component {
 
     this.state = {
       isEditing: false,
+      isValid: false,
       nameId: null,
       errors: {},
-      currentPage: '',
+      currentPage: '1',
       totalPage: '',
       total: '',
+      errorMessage: '',
+      isAuth: '',
     }
   }
 
   onPageChange = (page) => {
+    this.setState({currentPage: page})
     this.props.getManufacturers(page, false)
   }
 
   componentWillMount() {
     this.props.clearError()
-    this.setState({isLoading:true})
-    this.props.getManufacturers();
-    this.setState({isLoading:false})
+    this.setState({isAuth: localStorage.getItem('user')})
+    this.props.getManufacturers()
+    this.setLoading()
+  }
+
+  setLoading() {
+    this.setState({isLoading: true})
+    setTimeout(() => {
+      this.setState({
+          isLoading: false
+      })
+    }, 2000)
   }
 
   handleInputChange = (event) => {
@@ -64,30 +78,33 @@ class Manufacturer extends Component {
     if (this.state.isEditing) {
       if (this.isValid()) {
         this.props.putAPI(setup.BASE_URL + setup.Manufacturers, index, newName)
-        .then(response => {
-          this.setState({nameId: null, isEditing: false})
-        })
         .then(() => {
-          this.props.getManufacturers();
+          this.props.getManufacturers(this.state.currentPage)
+          this.showSuccessMessage()
+          this.setState({nameId: null, isEditing: false, errorMessage: ''})
         })
-        .catch(error => console.log(error));
+        .catch(error => {
+          this.setState({name: this.state.name, errorMessage: error.response.data.errorMessages});
+        })
         this.setState({errors: {}});
       }
     }
     this.setState({isEditing: true})
   }
 
-  render() {
-    var isAuth = localStorage.getItem('user');
+  showSuccessMessage = () => {
+    this.setState({isSaved: true})
 
-    if (!this.props.unauthenticated === 401) {
-      const { isLoading } = this.props;
-      if (isLoading) {
-       return <Code/>;
-      }
-    }
+    setTimeout(() => {
+        this.setState({
+            isSaved: false
+        })
+    }, 2000)
+  }
 
-    const { errors } = this.state;
+  render() 
+  {
+    const { errors, isAuth } = this.state;
 
     var manufacturerItem = this.props.manufacturers.map(function(props, index) {
       return(
@@ -109,54 +126,28 @@ class Manufacturer extends Component {
           <td>
             <input type="submit" 
                   value={this.state.nameId !== props.id   ? 'Edit' : 'Save'} 
-                  className="btn btn-success"
+                  className="btn btn-info"
                   onClick={this.handleEditBtnClick.bind(this, props.id, props.name)}/>
           </td>
         </tr>
       );}, this); 
     
     return (
+      this.props.networkError ? <ErrorNetwork/> : (this.props.unauthenticated === 401 || !isAuth) ? <Error401/> :
+          this.state.isLoading ? <Loader/> :
       <div id="page-wrapper">
-        {this.props.unauthenticated === 401 || !isAuth ? 
-          <Error401/> :
-            <div>
-              <div className="row">
-                  <div className="col-lg-12">
-                      <h1 className="page-header">Manufacturer</h1>
-                      {this.props.error ? <p className="alert alert-danger">{this.props.error.errorMessages}</p>: null }
-                  </div>
-                </div>
-              <div className="row">
-                  <div className="col-lg-6">
-                      <div className="panel panel-info">
-                          <div className="panel-heading">
-                              <p> List of Manufacturer </p>
-                          </div>
-                          <div className="panel-body">
-                          <div className="table-responsive table-bordered">
-                            <form>
-                            <table className="table table-striped table-hover table-borderless">
-                                  <thead>
-                                      <tr>
-                                          <th>ID</th>
-                                          <th>Category</th>
-                                          <th>Edit</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody>
-                                    { manufacturerItem }
-                                  </tbody>
-                              </table>
-                              {(this.props.totalPage && this.props.currentPage) 
-                                  && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
-                            </form>
-                          </div>
-                      </div>
-                      </div>
-                  </div>
-                <CreateManufacturer getManufacturer={this.getManufacturer}/>
-              </div>
-        </div> }
+        <div className="row">
+            <div className="col-lg-12">
+              <h1 className="page-header">Manufacturer</h1>
+                { CommonRegisterFormHeader(this.state.errorMessage) }
+                { this.state.isSaved && CommonSuccessMessage('updated') }
+            </div>
+        </div>
+        <div className="row">
+            { CommonRegisterForm('Manufacturer', this.props.totalPage, this.props.currentPage, this.props.total,
+                this.onPageChange, manufacturerItem) }
+          <CreateManufacturer getManufacturer={this.getManufacturer}/>
+        </div>
       </div>
     );
   }
@@ -165,12 +156,14 @@ class Manufacturer extends Component {
 const mapStateToProps = state => ({
   manufacturers: state.manufacturers.manufacturerList,
   isLoading: state.manufacturers.isLoading,
-  unauthenticated: state.unauthenticated.unauthenticatedError,
   currentPage: state.manufacturers.manufacturerCurrentPage,
   totalPage: state.manufacturers.manufacturerTotalPage,
   total: state.manufacturers.manufacturerTotal,
   page: state.page.page,
-      error: state.error.error
+  error: state.error.error,
+  manufacturerIsSuccess: state.manufacturers.manufacturerIsSuccess,
+  unauthenticated: state.unauthenticated.unauthenticatedError,
+  networkError: state.networkError.networkError,
 })
 
 export default connect(mapStateToProps, { getManufacturers, putAPI, clearError })(Manufacturer);

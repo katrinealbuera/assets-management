@@ -12,66 +12,88 @@ import {
     GET_USER,
     AUTHENTICATED, UNAUTHENTICATED, AUTHENTICATION_ERROR,
     GET_ASSET_ID, GET_ERROR, GET_USER_ID, GET_ASSET_ORDER_BY, GET_ASSET_ORDER_TYPE,
-    GET_ASSET_BY_KEYWORD, NEXT_PAGE, 
+    GET_ASSET_BY_KEYWORD, NEXT_PAGE, GET_NETWORK_ERROR,
     } 
     from '../actions/assetAction';
 
 const initialState = {
     assetList: [],
     asset: [],
+    assetTotal: '',
+    assetCurrentPage:'',
+    assetTotalPage:'',
+    assetsIsSuccess: false,
+
     modelList: [],
+    modelTotal: '',
+    modelCurrentPage:'',
+    modelTotalPage:'',
+    errorModel:'',
+    modelIsSuccess: false,
+
     categoryList:[],
+    categoryTotal: '',
+    categoryCurrentPage:'',
+    categoryTotalPage:'',
+    categoryIsSuccess: false,
+
     manufacturerList: [],
+    manufacturerTotal: '',
+    manufacturerCurrentPage:'',
+    manufacturerTotalPage:'',
+    manufacturerIsSuccess: false,
+
     processorList: [],
+    processorTotal: '',
+    processorCurrentPage:'',
+    processorTotalPage:'',
+    processorIsSuccess: false,
+
     supplierList: [],
+    supplierTotal: '',
+    supplierCurrentPage:'',
+    supplierTotalPage:'',
+    supplierIsSuccess: false,
+
     diskList: [],
+    diskTotal: '',
+    diskCurrentPage:'',
+    diskTotalPage:'',
+    diskError:'',
+    diskIsSuccess: false,
+
     memoryList: [],
+    memoryTotal: '',
+    memoryCurrentPage:'',
+    memoryTotalPage:'',
+    memoryError:'',
+    memoryIsSuccess: false,
+
     vcardList: [],
+    vcardTotal: '',
+    vcardCurrentPage:'',
+    vcardTotalPage:'',
+    vcardIsSuccess: false,
+
+    userList:[],
+    user:[],
+    userTotal: '',
+    userCurrentPage:'',
+    userTotalPage:'',
+    userIsSuccess: false,
+
     statusList: [],
     assetsOrderBy:[],
     assetsOrderType:[],
     assetsKeyword: [],
-    userList:[],
-    user:[],
+
     isLoading: true,
     authenticated: false,
     error: '',
     currentPage:'',
     totalPage:'',
     total:'',
-    categoryTotal: '',
-    categoryCurrentPage:'',
-    categoryTotalPage:'',
-    userTotal: '',
-    userCurrentPage:'',
-    userTotalPage:'',
-    diskTotal: '',
-    diskCurrentPage:'',
-    diskTotalPage:'',
-    vcardTotal: '',
-    vcardCurrentPage:'',
-    vcardTotalPage:'',
-    supplierTotal: '',
-    supplierCurrentPage:'',
-    supplierTotalPage:'',
-    modelTotal: '',
-    modelCurrentPage:'',
-    modelTotalPage:'',
-    assetTotal: '',
-    assetCurrentPage:'',
-    assetTotalPage:'',
-    manufacturerTotal: '',
-    manufacturerCurrentPage:'',
-    manufacturerTotalPage:'',
-    processorTotal: '',
-    processorCurrentPage:'',
-    processorTotalPage:'',
-    memoryTotal: '',
-    memoryCurrentPage:'',
-    memoryTotalPage:'',
-    memoryError:'',
-    diskError:'',
-    errorModel:'',
+    networkError:'',
 };
 
 export default function(state = initialState, action) {
@@ -88,6 +110,7 @@ export default function(state = initialState, action) {
                 userCurrentPage: action.userCurrentPage,
                 userTotalPage: action.userTotalPage,
                 userTotal: action.userTotal,
+                userIsSuccess: action.userIsSuccess,
         }
         case GET_USER_ID : 
             return {
@@ -108,6 +131,7 @@ export default function(state = initialState, action) {
                 modelCurrentPage: action.modelCurrentPage,
                 modelTotalPage: action.modelTotalPage,
                 modelTotal: action.modelTotal,
+                modelIsSuccess: action.modelIsSuccess,
             };
         case GET_CATEGORY : 
             return {
@@ -117,6 +141,7 @@ export default function(state = initialState, action) {
                 categoryCurrentPage: action.categoryCurrentPage,
                 categoryTotalPage: action.categoryTotalPage,
                 categoryTotal: action.categoryTotal,
+                categoryIsSuccess: action.categoryIsSuccess,
             }
         case GET_MANUFACTURER : 
             return {
@@ -126,6 +151,7 @@ export default function(state = initialState, action) {
                 manufacturerCurrentPage: action.manufacturerCurrentPage,
                 manufacturerTotalPage: action.manufacturerTotalPage,
                 manufacturerTotal: action.manufacturerTotal,
+                manufacturerIsSuccess: action.manufacturerIsSuccess,
         }
         case GET_PROCESSOR : 
             return {
@@ -135,6 +161,7 @@ export default function(state = initialState, action) {
                 processorCurrentPage: action.processorCurrentPage,
                 processorTotalPage: action.processorTotalPage,
                 processorTotal: action.processorTotal,
+                processorIsSuccess: action.processorIsSuccess,
             }
         case GET_SUPPLIER : 
             return {
@@ -144,6 +171,7 @@ export default function(state = initialState, action) {
                 supplierCurrentPage: action.supplierCurrentPage,
                 supplierTotalPage: action.supplierTotalPage,
                 supplierTotal: action.supplierTotal,
+                supplierIsSuccess: action.supplierIsSuccess,
         }
         case GET_DISK : 
             return {
@@ -153,6 +181,7 @@ export default function(state = initialState, action) {
                 diskCurrentPage: action.diskCurrentPage,
                 diskTotalPage: action.diskTotalPage,
                 diskTotal: action.diskTotal,
+                diskIsSuccess: action.diskIsSuccess,
         }
         case GET_MEMORY : 
             return {
@@ -162,6 +191,7 @@ export default function(state = initialState, action) {
                 memoryCurrentPage: action.memoryCurrentPage,
                 memoryTotalPage: action.memoryTotalPage,
                 memoryTotal: action.memoryTotal,
+                memoryIsSuccess: action.memoryIsSuccess,
         }
         case GET_VCARD : 
             return {
@@ -171,6 +201,7 @@ export default function(state = initialState, action) {
                 vcardCurrentPage: action.vcardCurrentPage,
                 vcardTotalPage: action.vcardTotalPage,
                 vcardTotal: action.vcardTotal,
+                vcardIsSuccess: action.vcardIsSuccess,
         }
         case GET_STATUS : 
             return {
@@ -207,6 +238,7 @@ export default function(state = initialState, action) {
                 assetCurrentPage: action.assetCurrentPage,
                 assetTotalPage: action.assetTotalPage,
                 assetTotal: action.assetTotal,
+                assetsIsSuccess: action.assetsIsSuccess,
         }
         case GET_ASSET_ID : 
             return {
@@ -228,6 +260,11 @@ export default function(state = initialState, action) {
         return {
             ...state,
             error: action.payload,
+        }
+        case GET_NETWORK_ERROR :
+        return {
+            ...state,
+            networkError: action.network
         }
         default:
             return state;

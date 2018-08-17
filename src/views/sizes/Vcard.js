@@ -1,81 +1,160 @@
 import React, { Component } from "react";
-import setup from '../../js/setup/api';
+import setup from '../../actions/setup/api';
+import fieldname from '../../actions/setup/FieldNameResource';
+import CreateVcard from '../sizes/CreateVideocard';
 import { connect } from 'react-redux';
-import { getVCards, postAPI } from '../../actions/assetAction';
-import { Textbox } from 'react-inputs-validation';
+import { Code } from 'react-content-loader';
+import { putAPI, getVCards, clearError } from '../../actions/assetAction';
+import { validateSize } from '../../actions/validation/validateInput';
+import { CommonRegisterForm, CommonRegisterFormHeader, CommonSuccessMessage } from '../common/component';
 
-class Vcard extends Component{
-    constructor(props){
-        super(props);
+class Vcard extends Component {
 
-        this.state = {
-            size: '',
-            isValidForm: false,
-        }
+  constructor(){
+    super();
+
+    this.state = {
+      isEditing: false,
+      sizeId: null,
+      errors: {},
+      currentPage: '1',
+      totalPage: '',
+      total: '',
+      errorMessage: '',
+    }
+  }
+
+  onPageChange = (page) => {
+    this.setState({currentPage: page})
+    this.props.getVCards(page, false)
+  }
+  
+  componentWillMount() {
+    this.props.clearError()
+    this.props.getVCards()
+    this.setLoading()
+  }
+
+  setLoading() {
+    this.setState({isLoading: true})
+    setTimeout(() => {
+      this.setState({
+          isLoading: false
+      })
+    }, 1000)
+  }
+
+  handleInputChange = (event) => {
+    this.setState({ size : event.target.value})
+  }
+  
+  isValid() {
+    const { errors, isValid } = validateSize(this.state);
+
+    if (!isValid) {
+      this.setState({errors});
     }
 
-    handleSubmit = (event) => {
-        event.preventDefault();
-        
-        const newSize = {
-            size: this.state.size
-        }
+    return isValid;
+  }
 
-        if(this.state.isValidForm) {
-        this.props.postAPI(setup.BASE_URL + setup.Sizes.Videocard, newSize)
-            .then(() => {
-                this.props.getVCards();
-            }).catch(error => console.log(error))
-        }
-        this.setState({size: ''});
+  handleEditBtnClick = (index, size, event) => {
+    event.preventDefault();
+
+    this.setState({
+      sizeId: index,
+      size: size
+    });
+
+    let newSize = {
+      id: index,
+      size: this.state.size
+  }
+
+    if (this.state.isEditing) {
+      if (this.isValid()) { 
+        this.props.putAPI(setup.BASE_URL + setup.Sizes.Videocard, index, newSize)
+        .then(() => {
+          this.props.getVCards(this.state.currentPage)
+          this.showSuccessMessage()
+          this.setState({sizeId: null, isEditing: false, errorMessage: ''})
+        })
+        .catch(error => {
+          this.setState({size: this.state.size, errorMessage: error.response.data.errorMessages});
+      })
+        this.setState({errors: {}});
+      }
     }
+    this.setState({isEditing: true})
+  }
 
-    render(){
+  showSuccessMessage = () => {
+    this.setState({isSaved: true})
+
+    setTimeout(() => {
+        this.setState({
+            isSaved: false
+        })
+    }, 1000)
+  }
+  
+  render() {
+    
+    const { errors } = this.state;
+
+    var vcardsItem = this.props.vcards.map(function(props, index) {
         return(
-        <div>
-            <div className="panel panel-success">
-                <div className="panel-heading">
-                    <p> Add New Videocard Size </p>
-                </div>
-                <form onSubmit={this.handleSubmit}>
-                    <table className="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Size</th>
-                                <th>Add</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td>
-                                <Textbox
-                                    tabIndex="1" id={'size'} name="name" type="text" value={this.state.size} 
-                                    onChange={(size, e) => {
-                                        if (isNaN(size) || size.length > 5 || !size){
-                                            this.setState({ size, hasError: true, isValidForm: false })
-                                        }
-                                        else {
-                                            this.setState({ size, hasError: false, isValidForm: true })
-                                        }
-                                    }} 
-                                    onBlur={() => {}}
-                                    validationOption={{
-                                        name: 'Size',
-                                        type: 'number',
-                                        check: true, 
-                                        required: true,
-                                    }} />
-                            </td>
-                            <td><input type="submit" value="Add" className={this.state.size && !this.state.hasError
-                                ? 'btn btn-success' : 'btn btn-success disabled'}/></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </form>
-            </div>
+            <tr key={index}>
+              <td>{props.id}</td>
+              { 
+                (props.id === this.state.sizeId) ? 
+                <td className="col-lg-6">
+                  <input type="text" 
+                        name="name" 
+                        className="form-control"
+                        defaultValue={props.size} 
+                        onChange={this.handleInputChange}/>
+                 <p style={setup.requiredInput}>{errors.size}</p>
+                </td>
+              :
+                <td className="col-lg-6"><p className=".col-xs-6 .col-md-4">{props.size} {fieldname.FieldName.GBUnit}</p></td>       
+              }
+              <td>
+                <input type="submit" 
+                      value={this.state.sizeId !== props.id   ? 'Edit' : 'Save'} 
+                      className="btn btn-success"
+                      onClick={this.handleEditBtnClick.bind(this, props.id, props.size)}/>
+              </td>
+            </tr>
+          );}, this); 
+    
+    return (
+      this.state.isLoading ? <Code/> :
+      <div>
+          <div className="row">
+              <div className="col-lg-12">
+                  <h1 className="page-header">VideoCard</h1>
+                     { CommonRegisterFormHeader(this.state.errorMessage) }
+                     { this.state.isSaved && CommonSuccessMessage('updated') }
+              </div>
+          </div>
+          <div className="row">
+              { CommonRegisterForm('VideoCard', this.props.totalPage, this.props.currentPage, this.props.total,
+                  this.onPageChange, vcardsItem) }
+              <CreateVcard getVCards={this.getVCards}/>
+          </div>
         </div>
-        )
-    }
+    );
+  }
 }
 
-export default connect(null, { postAPI, getVCards })(Vcard);
+const mapStateToProps = state => ({
+    vcards: state.vcards.vcardList,
+    isLoading: state.vcards.isLoading,
+    currentPage: state.vcards.vcardCurrentPage,
+    totalPage: state.vcards.vcardTotalPage,
+    total: state.vcards.vcardTotal,
+    page: state.page.page,
+  })
+  
+  export default connect(mapStateToProps, { getVCards, putAPI, clearError })(Vcard);

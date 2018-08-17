@@ -1,18 +1,22 @@
 import React, { Component } from "react";
-import setup from '../../setup/api';
+import setup from '../../actions/setup/api';
+import fieldname from '../../actions/setup/FieldNameResource';
 import { connect } from 'react-redux';
-import { postAPI, getProcessors } from '../../../actions/assetAction';
+import { postAPI, getModels } from '../../actions/assetAction';
 import { Textbox } from 'react-inputs-validation';
+import { CommonSuccessMessage } from '../common/component';
 
-class CreateProcessor extends Component {
+class CreateModel extends Component {
 
     constructor(props){
         super(props);
 
         this.state = {
             name: '',
-            hasError: '',
+            hasError: false,
             isValidForm: false,
+            isSaved: false,
+            errorMessage:'',
         }
     }
 
@@ -24,30 +28,46 @@ class CreateProcessor extends Component {
         }
 
         if (this.state.isValidForm) {
-            this.props.postAPI(setup.BASE_URL + setup.Processors, newName)
+            this.props.postAPI(setup.BASE_URL + setup.Models, newName)
             .then(() => {
-                this.props.getProcessors(1, false);
-            }).catch(error => console.log(error))
+                this.props.getModels(this.props.totalPage);
+                this.showSuccessMessage();
+                this.setState({name: '', errorMessage: ''});
+            })
+            .catch(error => {
+                this.setState({name: this.state.name, errorMessage: error.response.data.errorMessages});
+            });
         }
-        this.setState({name: ''});
     }
+
+    showSuccessMessage = () => {
+        this.setState({isSaved: true})
+    
+        setTimeout(() => {
+            this.setState({
+                isSaved: false
+            })
+        }, 2000)
+      }
 
   render() {
     return (
         <div className="col-lg-6">
-        <div className="panel panel-success">
+        {this.state.errorMessage ? <p className="alert alert-danger">{this.state.errorMessage}</p>: null }
+        <div className="panel panel-green">
             <div className="panel-heading">
-                <p> Add New Processor </p>
+                <p> Add New Model </p>
             </div>
             <div className="panel-body">
                 <div className="row">
+                { this.state.isSaved && CommonSuccessMessage('saved') }
                     <div className="col-lg-12">
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
-                                <label>Processor Name</label>
+                                <label>{fieldname.FieldName.Model}</label>
                                 <Textbox
                                     tabIndex="1" id={'name'} name="name"
-                                    type="text" value={this.state.name} placeholder="Processor Name"
+                                    type="text" value={this.state.name} placeholder="Model Name"
                                     onChange={(name, e) => {
                                         if(name.length > 30 | !name) {
                                             this.setState({ name, hasError: true, isValidForm: false })
@@ -58,16 +78,14 @@ class CreateProcessor extends Component {
                                     }} 
                                     onBlur={() => {}}
                                     validationOption={{
-                                        name: 'Processor Name',
+                                        name: 'Model Name',
                                         check: true, 
                                         required: true,
-                                        max: '30' 
+                                        max: '30',
                                     }} />
-                                   
-                                
                             </div>
-                            <input type="submit" value="Sumbit" className={this.state.name && !this.state.hasError 
-                                ? 'btn btn-success' : 'btn btn-success disabled'}/>
+                            <input type="submit" value="Sumbit" className={this.state.name && !this.state.hasError ? 
+                                'btn btn-success' : 'btn btn-success disabled'}/>
                         </form>     
                     </div>
                 </div>
@@ -78,5 +96,8 @@ class CreateProcessor extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+    totalPage: state.models.modelTotalPage,
+  })
 
-export default connect(null, { postAPI, getProcessors })(CreateProcessor);
+export default connect(mapStateToProps, { postAPI, getModels })(CreateModel);

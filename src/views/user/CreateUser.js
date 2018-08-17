@@ -2,8 +2,9 @@ import React, { Component } from 'react';
 import { Textbox } from 'react-inputs-validation';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { postAPI, getUsers, clearError } from '../../../actions/assetAction';
-import setup from '../../setup/api';
+import { postAPI, getUsers, clearError } from '../../actions/assetAction';
+import { CommonResetBtn, CommonSuccessMessage } from '../common/component';
+import setup from '../../actions/setup/api';
 
 class CreateUser extends Component {
     
@@ -11,16 +12,22 @@ class CreateUser extends Component {
         super(props,context);
 
         this.state = {
-            fullName:'',
-            userName: '',
-            password: '',
-            errors:'',
             isLoading : false,
             usernameError: false,
             fullnameError: false,
             passwordError: false,
+            isSaved: false,
+            fullName:'',
+            userName: '',
+            password: '',
+            errors:'',
             isValidForm: '',
+            errorMessage:'',
         }
+    }
+
+    resetForm = () => {
+        this.setState({fullName: '', userName: '', password: ''});
     }
 
     componentWillMount() {
@@ -43,15 +50,27 @@ class CreateUser extends Component {
         if (this.state.isValidForm) {
             if (addUser.userName && addUser.fullName && addUser.password) {
             this.props.postAPI(setup.BASE_URL + setup.GetUser, addUser)
-            .then((response) => {
-             this.props.getUsers();
-             })
-             .catch(error => console.log(error));
-
-            this.setState({fullName: '', userName: '', password: ''});
+            .then(() => {
+             this.props.getUsers(this.props.totalPage);
+             this.showSuccessMessage();
+             this.setState({fullName: '', userName: '', password: '', errorMessage: ''});
+            })
+            .catch(error => {
+                this.setState({password: '', errorMessage: error.response.data.errorMessages});
+            })
          }
         }
     }
+
+    showSuccessMessage = () => {
+        this.setState({isSaved: true})
+    
+        setTimeout(() => {
+            this.setState({
+                isSaved: false
+            })
+        }, 2000)
+      }
 
   render() {
     var registerForm = (
@@ -117,23 +136,29 @@ class CreateUser extends Component {
                             required: true,
                         }}  />
                 </div>
-        
-                <input type="submit" 
-                className={this.state.userName && this.state.fullName && this.state.password && this.state.isValidForm ?
-                     'btn btn-success btn-lg btn-block' : 'btn btn-success btn-lg btn-block disabled'}
-                value="Register"/>
+
+                <div className="form-group input-group">
+                    <input type="submit" style={setup.styleCloseBtn} 
+                    className={this.state.userName && this.state.fullName && this.state.password && this.state.isValidForm ?
+                     'btn btn-success' : 'btn btn-success disabled'}
+                        value="Register"/>
+
+                    {CommonResetBtn(this.resetForm)}
+                </div>
             </fieldset>
         </form>
             )
 
     return (
         <div className="col-lg-6">
-        <div className="panel panel-success">
+         {this.state.errorMessage ? <p className="alert alert-danger">{this.state.errorMessage}</p>: null }
+        <div className="panel panel-green">
             <div className="panel-heading">
                 <p> Add New User </p>
             </div>
             <div className="panel-body">
                 <div className="row">
+                { this.state.isSaved && CommonSuccessMessage('saved') }
                     <div className="col-lg-12">
                         {registerForm}    
                     </div>
@@ -147,6 +172,7 @@ class CreateUser extends Component {
 
 const mapStateToProps = state => ({
     error: state.error.error,
+    currentPage: state.users.userCurrentPage,
   })
 
   CreateUser.contextTypes = {

@@ -1,12 +1,13 @@
 import React, { Component } from "react";
-import setup from '../../js/setup/api';
-import { Code } from 'react-content-loader';
-import CreateCategory from '../../js/actions/category/CreateCategory';
+import setup from '../../actions/setup/api';
+import Error401 from '../../views/error/Error401';
+import CreateCategory from '../categories/CreateCategory';
+import ErrorNetwork from '../../views/error/ErrorNetwork';
+import Loader from '../common/Loader';
 import { connect } from 'react-redux';
 import { getCategories, putAPI, clearError } from '../../actions/assetAction';
-import { validateName } from '../../js/validation/validateInput';
-import Error401 from '../../views/error/Error401';
-import { CommonPager } from '../common/pager';
+import { validateName } from '../../actions/validation/validateInput';
+import { CommonRegisterForm, CommonRegisterFormHeader, CommonSuccessMessage } from '../common/component';
 
 class Category extends Component {
 
@@ -15,23 +16,36 @@ class Category extends Component {
 
     this.state = {
       isEditing: false,
+      isSaved: false,
       nameId: null,
       errors: {},
-      currentPage: '',
+      currentPage: '1',
       totalPage: '',
       total: '',
+      errorMessage: '',
+      isAuth:'',
     }
   }
 
   onPageChange = (page) => {
+    this.setState({currentPage: page})
     this.props.getCategories(page, false)
   }
 
   componentWillMount() {
     this.props.clearError()
-    this.setState({isLoading:true})
-    this.props.getCategories();
-    this.setState({isLoading:false})
+    this.setState({isAuth: localStorage.getItem('user')})
+    this.props.getCategories()
+    this.setLoading()
+  }
+
+  setLoading() {
+    this.setState({isLoading: true})
+    setTimeout(() => {
+      this.setState({
+          isLoading: false
+      })
+    }, 2000)
   }
 
   handleInputChange = (event) => {
@@ -64,28 +78,33 @@ class Category extends Component {
     if (this.state.isEditing) {
       if (this.isValid()) {
         this.props.putAPI(setup.BASE_URL + setup.Categories, index, newName)
-        .then(response => {
-          this.setState({nameId: null, isEditing: false})
-        })
         .then(() => {
-          this.props.getCategories();
+          this.props.getCategories(this.state.currentPage)
+          this.showSuccessMessage()
+          this.setState({nameId: null, isEditing: false, errorMessage: ''})
         })
-        .catch(error => console.log(error));
+        .catch(error => {
+          this.setState({name: this.state.name, errorMessage: error.response.data.errorMessages});
+      })
         this.setState({errors: {}});
       }
     }
     this.setState({isEditing: true})
   }
 
-  render() {
-    if (!this.props.unauthenticated === 401) {
-      const { isLoading } = this.props;
-      if (isLoading) {
-       return <Code/>;
-      }
-    }
+  showSuccessMessage = () => {
+    this.setState({isSaved: true})
 
-    const { errors } = this.state;
+    setTimeout(() => {
+        this.setState({
+            isSaved: false
+        })
+    }, 2000)
+  }
+
+  render() 
+  {
+    const { errors, isAuth } = this.state;
 
     var categoryItem = this.props.categories.map(function(props, index) {
       return(
@@ -107,55 +126,29 @@ class Category extends Component {
           <td>
             <input type="submit" 
                   value={this.state.nameId !== props.id   ? 'Edit' : 'Save'} 
-                  className="btn btn-success"
+                  className="btn btn-info"
                   onClick={this.handleEditBtnClick.bind(this, props.id, props.name)}/>
           </td>
         </tr>
-      );}, this); 
+      )}, this); 
     
     return (
-      <div id="page-wrapper">
-      {this.props.unauthenticated === 401 ? 
-        <Error401/> :
-      <div>
+    this.props.networkError ? <ErrorNetwork/> : (this.props.unauthenticated === 401 || !isAuth) ? <Error401/> :
+        this.state.isLoading ? <Loader/> :
+    <div id="page-wrapper">
         <div className="row">
-            <div className="col-lg-12">
-                <h1 className="page-header">Category</h1>
-                {this.props.error ? <p className="alert alert-danger">{this.props.error.errorMessages}</p>: null }
-            </div>
+          <div className="col-lg-12">
+              <h1 className="page-header">Category</h1>
+                  { CommonRegisterFormHeader(this.state.errorMessage) }
+                  { this.state.isSaved && CommonSuccessMessage('updated') }
           </div>
+        </div>
           <div className="row">
-              <div className="col-lg-6">
-                  <div className="panel panel-info">
-                    <div className="panel-heading">
-                      <p> List of Category </p>
-                    </div>
-                      <div className="panel-body">
-                          <div className="table table-striped table-hover table-borderless">
-                            <form>
-                            <table className="table table-hover">
-                                  <thead>
-                                      <tr>
-                                          <th>ID</th>
-                                          <th>Category</th>
-                                          <th>Edit</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody>
-                                    {categoryItem}
-                                  </tbody>
-                              </table>
-                              {(this.props.totalPage && this.props.currentPage) 
-                                  && CommonPager(this.props.total, this.props.currentPage, this.onPageChange)}
-                            </form>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-            <CreateCategory getCategories={this.getCategories}/>
+              { CommonRegisterForm('Category', this.props.totalPage, this.props.currentPage, this.props.total,
+                  this.onPageChange, categoryItem) }
+              <CreateCategory getCategories={this.getCategories}/>
           </div>
-        </div> }
-      </div>
+    </div>
     );
   }
 }
@@ -163,12 +156,14 @@ class Category extends Component {
 const mapStateToProps = state => ({
   categories: state.categories.categoryList,
   isLoading: state.categories.isLoading,
-  unauthenticated: state.unauthenticated.unauthenticatedError,
   currentPage: state.categories.categoryCurrentPage,
   totalPage: state.categories.categoryTotalPage,
   total: state.categories.categoryTotal,
   page: state.page.page,
-      error: state.error.error
+  error: state.error.error,
+  categoryIsSuccess: state.categories.categoryIsSuccess,
+  unauthenticated: state.unauthenticated.unauthenticatedError,
+  networkError: state.networkError.networkError,
 })
 
 export default connect(mapStateToProps, { getCategories, putAPI, clearError })(Category);

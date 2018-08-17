@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import setup from '../../setup/api';
+import setup from '../../actions/setup/api';
 import { connect } from 'react-redux';
-import { postAPI, getManufacturers } from '../../../actions/assetAction';
+import { postAPI, getManufacturers } from '../../actions/assetAction';
 import { Textbox } from 'react-inputs-validation';
+import { CommonSuccessMessage } from '../common/component';
 
 class CreateManufacturer extends Component {
 
@@ -13,6 +14,8 @@ class CreateManufacturer extends Component {
             name: '',
             hasError: false,
             isValidForm: false,
+            isSaved: false,
+            errorMessage:'',
         }
     }
 
@@ -26,22 +29,37 @@ class CreateManufacturer extends Component {
         if (this.state.isValidForm) { 
             this.props.postAPI(setup.BASE_URL + setup.Manufacturers, newName)
             .then(() => {
-                this.props.getManufacturers(1, false);
-            }).catch(error => console.log(error))
+                this.props.getManufacturers(this.props.totalPage);
+                this.showSuccessMessage();
+                this.setState({name: '', errorMessage: ''});
+            })
+            .catch(error => {
+                this.setState({name: this.state.name, errorMessage: error.response.data.errorMessages});
+            });
         }
-        this.setState({name: ''});
     }
 
+    showSuccessMessage = () => {
+        this.setState({isSaved: true})
+    
+        setTimeout(() => {
+            this.setState({
+                isSaved: false
+            })
+        }, 2000)
+      }
 
   render() {
     return (
         <div className="col-lg-6">
-        <div className="panel panel-success">
+        {this.state.errorMessage ? <p className="alert alert-danger">{this.state.errorMessage}</p>: null }
+        <div className="panel panel-green">
             <div className="panel-heading">
                 <p> Add New Manufacturer </p>
             </div>
             <div className="panel-body">
                 <div className="row">
+                { this.state.isSaved && CommonSuccessMessage('saved') }
                     <div className="col-lg-12">
                         <form onSubmit={this.handleSubmit}>
                             <div className="form-group">
@@ -77,5 +95,8 @@ class CreateManufacturer extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+    totalPage: state.manufacturers.manufacturerTotalPage,
+  })
 
-export default connect(null, { postAPI, getManufacturers })(CreateManufacturer);
+export default connect(mapStateToProps, { postAPI, getManufacturers })(CreateManufacturer);
